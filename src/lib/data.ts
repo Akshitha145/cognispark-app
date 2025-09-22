@@ -1,6 +1,6 @@
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
-import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon } from '@/components/icons';
+import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 
 
 export const children: Child[] = [
@@ -37,6 +37,13 @@ export const exercises: Exercise[] = [
     description: 'Build stories word by word to enhance language and creative skills.',
     skill: 'Language',
     icon: LanguageIcon,
+  },
+  {
+    id: 'emotion-explorer',
+    title: 'Emotion Explorer',
+    description: 'Identify emotions from facial expressions to improve social understanding.',
+    skill: 'Social-Emotional',
+    icon: EmotionIcon,
   },
 ];
 

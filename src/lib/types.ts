@@ -10,7 +10,7 @@ export type Exercise = {
   id: string;
   title: string;
   description: string;
-  skill: 'Memory' | 'Attention' | 'Problem-Solving' | 'Language';
+  skill: 'Memory' | 'Attention' | 'Problem-Solving' | 'Language' | 'Social-Emotional';
   icon: React.ComponentType<{ className?: string }>;
 };
 
