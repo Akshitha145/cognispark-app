@@ -14,11 +14,12 @@ import { EmotionExplorerGame } from '@/components/games/emotion-explorer-game';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEffect, use } from 'react';
 import { cn } from '@/lib/utils';
 import { BackgroundMusic } from '@/components/games/background-music';
 
-export default function ExercisePage({ params }: { params: { slug: string } }) {
+export default function ExercisePage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = use(params);
     const { toast } = useToast();
     const { transcript, isListening, startListening, stopListening } = useVoiceInput({
         onSpeechEnd: () => {
@@ -26,7 +27,7 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
         }
     });
 
-    const exercise = exercises.find((e) => e.id === params.slug);
+    const exercise = exercises.find((e) => e.id === slug);
 
     useEffect(() => {
         if (transcript) {
