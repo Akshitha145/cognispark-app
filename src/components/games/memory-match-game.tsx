@@ -54,12 +54,18 @@ function MemoryCardComponent({ card, onCardClick }: { card: MemoryCard, onCardCl
 }
 
 export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
-    const [cards, setCards] = useState<MemoryCard[]>(createBoard());
+    const [cards, setCards] = useState<MemoryCard[]>([]);
     const [flippedCards, setFlippedCards] = useState<number[]>([]);
     const [attempts, setAttempts] = useState(0);
     const [difficulty, setDifficulty] = useState('Easy');
     const [isComplete, setIsComplete] = useState(false);
     const { playAudio, isPlaying } = useAudioPlayer();
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setCards(createBoard());
+        setIsMounted(true);
+    }, []);
 
     const performance = useMemo(() => {
         if (attempts === 0) return 100;
@@ -69,36 +75,36 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
 
 
     useEffect(() => {
-        if (flippedCards.length === 2) {
-            setAttempts(prev => prev + 1);
-            const [firstId, secondId] = flippedCards;
-            const firstCard = cards.find(c => c.id === firstId);
-            const secondCard = cards.find(c => c.id === secondId);
+        if (!isMounted || flippedCards.length !== 2) return;
 
-            if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
-                if (!isPlaying) playAudio('You found a match!', 'en-US');
-                setCards(prev => prev.map(card =>
-                    card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
+        setAttempts(prev => prev + 1);
+        const [firstId, secondId] = flippedCards;
+        const firstCard = cards.find(c => c.id === firstId);
+        const secondCard = cards.find(c => c.id === secondId);
+
+        if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
+            if (!isPlaying) playAudio('You found a match!', 'en-US');
+            setCards(prev => prev.map(card =>
+                card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
+            ));
+             setTimeout(() => setFlippedCards([]), 500);
+        } else {
+             if (!isPlaying) playAudio('Oops, try again!', 'en-US');
+             setTimeout(() => {
+                setCards(prev => prev.map(card => 
+                    (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
                 ));
-                 setTimeout(() => setFlippedCards([]), 500);
-            } else {
-                 if (!isPlaying) playAudio('Oops, try again!', 'en-US');
-                 setTimeout(() => {
-                    setCards(prev => prev.map(card => 
-                        (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
-                    ));
-                    setFlippedCards([]);
-                }, 1000);
-            }
+                setFlippedCards([]);
+            }, 1000);
         }
-    }, [flippedCards, cards, playAudio, isPlaying]);
+    }, [flippedCards, cards, playAudio, isPlaying, isMounted]);
 
     useEffect(() => {
-        if(cards.length > 0 && cards.every(c => c.isMatched)) {
+        if (isMounted && cards.length > 0 && cards.every(c => c.isMatched)) {
             if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
             setIsComplete(true);
         }
-    }, [cards, playAudio, isPlaying]);
+    }, [cards, playAudio, isPlaying, isMounted]);
     
 
     const handleCardClick = (id: number) => {
@@ -114,6 +120,25 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
         setFlippedCards([]);
         setAttempts(0);
         setIsComplete(false);
+    }
+    
+    if (!isMounted) {
+        return (
+            <Card className="max-w-md mx-auto">
+                <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                        <span>Memory Board</span>
+                        <Badge>{difficulty}</Badge>
+                    </CardTitle>
+                    <CardDescription>Loading game...</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-center h-full min-h-[220px]">
+                        <p>Loading...</p>
+                    </div>
+                </CardContent>
+            </Card>
+        );
     }
 
     return (

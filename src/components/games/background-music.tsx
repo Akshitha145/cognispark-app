@@ -14,17 +14,19 @@ export function BackgroundMusic() {
         if (isMounted && audioRef.current) {
             const audio = audioRef.current;
             audio.volume = 0.1; // Set a low volume
-            // Autoplay can be tricky. This is a common approach.
-            audio.play().catch(error => {
-                console.warn("Background music autoplay was prevented:", error);
-                // In some browsers, autoplay is blocked until the user interacts with the page.
-                // We can add a click listener to start it on the first interaction.
-                const playOnFirstClick = () => {
-                    audio.play().catch(e => console.error("Could not play audio on click", e));
-                    window.removeEventListener('click', playOnFirstClick);
-                };
-                window.addEventListener('click', playOnFirstClick);
-            });
+            
+            const playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn("Background music autoplay was prevented:", error);
+                    const playOnFirstClick = () => {
+                        audio.play().catch(e => console.error("Could not play audio on click", e));
+                        window.removeEventListener('click', playOnFirstClick);
+                    };
+                    window.addEventListener('click', playOnFirstClick);
+                });
+            }
         }
     }, [isMounted]);
 
