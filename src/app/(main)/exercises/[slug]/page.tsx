@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Mic } from 'lucide-react';
 import { MemoryMatchGame } from '@/components/games/memory-match-game';
+import { PatternPuzzlesGame } from '@/components/games/pattern-puzzles-game';
+import { FocusForestGame } from '@/components/games/focus-forest-game';
+import { StoryCreatorGame } from '@/components/games/story-creator-game';
+import { EmotionExplorerGame } from '@/components/games/emotion-explorer-game';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ExercisePage({ params }: { params: { slug: string } }) {
@@ -20,7 +24,14 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
         switch(exercise.id) {
             case 'memory-match':
                 return <MemoryMatchGame exercise={exercise} />;
-            // Other games can be added here
+            case 'pattern-puzzles':
+                return <PatternPuzzlesGame exercise={exercise} />;
+            case 'focus-forest':
+                return <FocusForestGame exercise={exercise} />;
+            case 'story-creator':
+                return <StoryCreatorGame exercise={exercise} />;
+            case 'emotion-explorer':
+                return <EmotionExplorerGame exercise={exercise} />;
             default:
                 return (
                      <Card className="flex-1">
