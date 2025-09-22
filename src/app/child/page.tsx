@@ -1,10 +1,37 @@
+'use client';
+
 import { PageHeader } from '@/components/page-header';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { exercises } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, Volume2, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
+
+function PlayAudioButton({ text, languageCode }: { text: string, languageCode: string }) {
+    const { playAudio, isPlaying } = useAudioPlayer();
+
+    const handlePlay = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        playAudio(text, languageCode);
+    }
+    
+    return (
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={handlePlay}
+            disabled={isPlaying}
+            className="h-6 w-6"
+        >
+            {isPlaying ? <Loader2 className="animate-spin" /> : <Volume2 />}
+            <span className="sr-only">Play audio</span>
+        </Button>
+    )
+}
+
 
 export default function ChildPortalPage() {
     return (
@@ -24,10 +51,17 @@ export default function ChildPortalPage() {
                 </div>
             </header>
             <main className="flex flex-1 flex-col gap-6 p-6">
-                <PageHeader
-                    title="Your Games"
-                    description="Choose a game to play and earn points."
-                />
+                <div className="flex items-center justify-between">
+                    <PageHeader
+                        title="Your Games"
+                        description="Choose a game to play and earn points."
+                    />
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Hear in Kannada</span>
+                        <PlayAudioButton text="Choose a game to play and earn points." languageCode="kn-IN" />
+                    </div>
+                </div>
+
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [perspective:1000px]">
                     {exercises.map((exercise) => (
                         <Card key={exercise.id} className="flex flex-col transition-transform duration-300 ease-in-out hover:shadow-2xl hover:[transform:rotateX(10deg)_translateZ(20px)]">
@@ -38,12 +72,18 @@ export default function ChildPortalPage() {
                                     </div>
                                 </div>
                                 <div className="flex-grow">
-                                    <CardTitle>{exercise.title}</CardTitle>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle>{exercise.title}</CardTitle>
+                                        <PlayAudioButton text={exercise.title} languageCode="kn-IN" />
+                                    </div>
                                     <Badge variant="outline" className="mt-1">{exercise.skill}</Badge>
                                 </div>
                             </CardHeader>
                             <CardDescription className="p-6 pt-0 grow">
-                                {exercise.description}
+                                <div className="flex items-start justify-between">
+                                    <span>{exercise.description}</span>
+                                    <PlayAudioButton text={exercise.description} languageCode="kn-IN" />
+                                </div>
                             </CardDescription>
                             <CardFooter>
                                 <Button asChild className="w-full">
