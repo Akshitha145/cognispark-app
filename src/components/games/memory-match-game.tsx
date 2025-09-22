@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw, BrainCircuit, Puzzle } from 'lucide-react';
+import { BrainCircuit, Puzzle, CheckCircle, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +39,7 @@ function MemoryCardComponent({ card, onCardClick }: { card: MemoryCard, onCardCl
             onClick={() => onCardClick(card.id)}
         >
             <div className="absolute w-full h-full bg-secondary rounded-lg flex items-center justify-center [backface-visibility:hidden]">
-                <Star className="h-8 w-8 text-secondary-foreground/50" />
+                <Puzzle className="h-8 w-8 text-secondary-foreground/50" />
             </div>
             <div 
                 className={cn(
@@ -59,7 +59,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     const [attempts, setAttempts] = useState(0);
     const [difficulty, setDifficulty] = useState('Easy');
     const [isComplete, setIsComplete] = useState(false);
-    const { playAudio } = useAudioPlayer();
+    const { playAudio, isPlaying } = useAudioPlayer();
 
     const performance = useMemo(() => {
         if (attempts === 0) return 100;
@@ -76,13 +76,13 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
             const secondCard = cards.find(c => c.id === secondId);
 
             if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
-                playAudio('You found a match!', 'kn-IN');
+                if (!isPlaying) playAudio('You found a match!', 'kn-IN');
                 setCards(prev => prev.map(card =>
                     card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
                 ));
-                 setTimeout(() => setFlippedCards([]), 1000);
+                 setTimeout(() => setFlippedCards([]), 500);
             } else {
-                 playAudio('Oops, try again!', 'kn-IN');
+                 if (!isPlaying) playAudio('Oops, try again!', 'kn-IN');
                  setTimeout(() => {
                     setCards(prev => prev.map(card => 
                         (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
@@ -91,14 +91,14 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
                 }, 1000);
             }
         }
-    }, [flippedCards, cards, playAudio]);
+    }, [flippedCards, cards, playAudio, isPlaying]);
 
     useEffect(() => {
         if(cards.length > 0 && cards.every(c => c.isMatched)) {
-            playAudio('Great Job! You completed the game!', 'kn-IN');
+            if (!isPlaying) playAudio('Great Job! You completed the game!', 'kn-IN');
             setIsComplete(true);
         }
-    }, [cards, playAudio]);
+    }, [cards, playAudio, isPlaying]);
     
 
     const handleCardClick = (id: number) => {
@@ -127,7 +127,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
             </CardHeader>
             <CardContent className="space-y-6">
                 {isComplete ? (
-                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-background rounded-lg p-8 text-center">
+                    <div className="flex flex-col items-center justify-center h-full min-h-[220px] bg-background rounded-lg p-8 text-center">
                         <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
                         <h3 className="text-2xl font-bold mb-2">Great Job!</h3>
                         <p className="text-muted-foreground mb-4">You completed the game in {attempts} attempts.</p>

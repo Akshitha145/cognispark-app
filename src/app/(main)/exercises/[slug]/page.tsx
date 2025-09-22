@@ -16,6 +16,7 @@ import { useVoiceInput } from '@/hooks/use-voice-input';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { BackgroundMusic } from '@/components/games/background-music';
 
 export default function ExercisePage({ params }: { params: { slug: string } }) {
     const { toast } = useToast();
@@ -81,6 +82,7 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
 
     return (
         <div className="flex flex-1 flex-col gap-6">
+            <BackgroundMusic />
             <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-4'>
                     <Button variant="outline" size="icon" asChild>
