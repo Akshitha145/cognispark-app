@@ -1,15 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw, BrainCircuit, Puzzle, Bot, HeartHandshake } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw, BrainCircuit, Puzzle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { getAdaptedExercise, type FormState } from '@/app/(main)/exercises/[slug]/actions';
 import type { Exercise } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 const icons = [BrainCircuit, Puzzle];
 const cardSymbols = [...icons, ...icons].sort(() => Math.random() - 0.5);
@@ -61,6 +59,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     const [attempts, setAttempts] = useState(0);
     const [difficulty, setDifficulty] = useState('Easy');
     const [isComplete, setIsComplete] = useState(false);
+    const { playAudio } = useAudioPlayer();
 
     const performance = useMemo(() => {
         if (attempts === 0) return 100;
@@ -77,11 +76,13 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
             const secondCard = cards.find(c => c.id === secondId);
 
             if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
+                playAudio('You found a match!', 'kn-IN');
                 setCards(prev => prev.map(card =>
                     card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
                 ));
                  setTimeout(() => setFlippedCards([]), 1000);
             } else {
+                 playAudio('Oops, try again!', 'kn-IN');
                  setTimeout(() => {
                     setCards(prev => prev.map(card => 
                         (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
@@ -90,13 +91,14 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
                 }, 1000);
             }
         }
-    }, [flippedCards, cards]);
+    }, [flippedCards, cards, playAudio]);
 
     useEffect(() => {
         if(cards.length > 0 && cards.every(c => c.isMatched)) {
+            playAudio('Great Job! You completed the game!', 'kn-IN');
             setIsComplete(true);
         }
-    }, [cards]);
+    }, [cards, playAudio]);
     
 
     const handleCardClick = (id: number) => {
