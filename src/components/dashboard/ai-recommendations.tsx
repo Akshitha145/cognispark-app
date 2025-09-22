@@ -31,7 +31,7 @@ export async function AiRecommendations() {
             </CardHeader>
             <CardContent>
                 <ul className="space-y-4">
-                    {recommendations.recommendations.slice(0, 3).map((rec, index) => (
+                    {recommendations?.recommendations.slice(0, 3).map((rec, index) => (
                          <li key={index} className="flex items-start gap-4 p-3 bg-secondary/50 rounded-lg">
                             <div className="flex-shrink-0">
                                 {getExerciseIcon(rec.exerciseId)}
