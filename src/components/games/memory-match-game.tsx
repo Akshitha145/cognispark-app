@@ -11,8 +11,8 @@ import { getAdaptedExercise, type FormState } from '@/app/(main)/exercises/[slug
 import type { Exercise } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const icons = [BrainCircuit, Puzzle, Bot, HeartHandshake];
-const cardSymbols = [...icons.slice(0, 2), ...icons.slice(0, 2)].sort(() => Math.random() - 0.5);
+const icons = [BrainCircuit, Puzzle];
+const cardSymbols = [...icons, ...icons].sort(() => Math.random() - 0.5);
 
 type MemoryCard = {
   id: number;
@@ -28,16 +28,6 @@ function createBoard(): MemoryCard[] {
         isFlipped: false,
         isMatched: false,
     }));
-}
-
-function SubmitButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-            Get AI Adaptation
-        </Button>
-    );
 }
 
 function MemoryCardComponent({ card, onCardClick }: { card: MemoryCard, onCardClick: (id: number) => void }) {
@@ -72,12 +62,9 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     const [difficulty, setDifficulty] = useState('Easy');
     const [isComplete, setIsComplete] = useState(false);
 
-    const initialState: FormState = null;
-    const [state, formAction] = useFormState(getAdaptedExercise, initialState);
-    
     const performance = useMemo(() => {
         if (attempts === 0) return 100;
-        const baseScore = Math.max(0, 100 - (attempts - icons.length/2) * 20);
+        const baseScore = Math.max(0, 100 - (attempts - icons.length) * 20);
         return baseScore;
     }, [attempts]);
 
@@ -111,11 +98,6 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
         }
     }, [cards]);
     
-    useEffect(() => {
-        if (state?.result?.newDifficulty) {
-            setDifficulty(state.result.newDifficulty);
-        }
-    }, [state]);
 
     const handleCardClick = (id: number) => {
         const card = cards.find(c => c.id === id);
@@ -133,70 +115,34 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     }
 
     return (
-        <div className="grid md:grid-cols-2 gap-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                        <span>Memory Board</span>
-                        <Badge>{difficulty}</Badge>
-                    </CardTitle>
-                    <CardDescription>Match all the pairs! Attempts: {attempts}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {isComplete ? (
-                        <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-background rounded-lg p-8 text-center">
-                            <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-                            <h3 className="text-2xl font-bold mb-2">Great Job!</h3>
-                            <p className="text-muted-foreground mb-4">You completed the game in {attempts} attempts.</p>
-                            <p className="text-xl font-bold mb-6">Your Score: {performance}%</p>
-                            <Button onClick={handleRestart}>
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Play Again
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto [perspective:1000px]">
-                            {cards.map(card => (
-                                <MemoryCardComponent key={card.id} card={card} onCardClick={handleCardClick} />
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-primary/5 to-accent/5">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        AI Personalization
-                    </CardTitle>
-                    <CardDescription>The AI will adjust the next exercise based on the performance score.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {!isComplete ? (
-                         <div className="flex items-center justify-center h-40 rounded-lg border-2 border-dashed">
-                             <p className="text-muted-foreground">Complete the game to see AI results</p>
-                         </div>
-                    ) : state?.result ? (
-                        <Alert>
-                            <Sparkles className="h-4 w-4" />
-                            <AlertTitle>New Recommendation: {state.result.newDifficulty}</AlertTitle>
-                            <AlertDescription>{state.result.reasoning}</AlertDescription>
-                        </Alert>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-40 rounded-lg border-2 border-dashed p-4 text-center">
-                            <p className="text-muted-foreground font-semibold mb-4">Ready to adapt?</p>
-                            <p className="text-muted-foreground text-sm mb-4">Submit your performance score of {performance}% to get a personalized recommendation for your next game.</p>
-                             <form action={formAction}>
-                                <input type="hidden" name="exerciseType" value={exercise.title} />
-                                <input type="hidden" name="currentDifficulty" value={difficulty} />
-                                <input type="hidden" name="userPerformance" value={performance} />
-                                <SubmitButton />
-                            </form>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+        <Card className="max-w-md mx-auto">
+            <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                    <span>Memory Board</span>
+                    <Badge>{difficulty}</Badge>
+                </CardTitle>
+                <CardDescription>Match all the pairs! Attempts: {attempts}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {isComplete ? (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-background rounded-lg p-8 text-center">
+                        <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
+                        <h3 className="text-2xl font-bold mb-2">Great Job!</h3>
+                        <p className="text-muted-foreground mb-4">You completed the game in {attempts} attempts.</p>
+                        <p className="text-xl font-bold mb-6">Your Score: {performance}%</p>
+                        <Button onClick={handleRestart}>
+                            <RotateCcw className="mr-2 h-4 w-4" />
+                            Play Again
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto [perspective:1000px]">
+                        {cards.map(card => (
+                            <MemoryCardComponent key={card.id} card={card} onCardClick={handleCardClick} />
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     );
 }
