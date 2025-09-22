@@ -37,7 +37,9 @@ export async function getCaregiverRecommendations(input: CaregiverRecommendation
 
 const caregiverRecommendationsPrompt = ai.definePrompt({
   name: 'caregiverRecommendationsPrompt',
-  input: {schema: CaregiverRecommendationsInputSchema},
+  input: {schema: CaregiverRecommendationsInputSchema.extend({
+    performanceDataString: z.string(),
+  })},
   output: {schema: CaregiverRecommendationsOutputSchema},
   prompt: `You are an AI assistant that generates personalized learning path recommendations for caregivers to better support their child's cognitive development.
 
@@ -46,7 +48,7 @@ const caregiverRecommendationsPrompt = ai.definePrompt({
   - Child Age (months): {{{childAgeMonths}}}
   - Disability Type: {{{disabilityType}}}
   - Current Exercises: {{#each currentExercises}}{{{this}}}, {{/each}}
-  - Performance Data: {{{JSONstringify performanceData}}}
+  - Performance Data: {{{performanceDataString}}}
 
   Provide a list of exercise recommendations (exerciseId, reason, difficulty) tailored to the child's needs and performance.
   Ensure the recommendations are appropriate for their age and disability type, and consider their current exercises and performance data.
@@ -61,7 +63,10 @@ const caregiverRecommendationsFlow = ai.defineFlow(
     outputSchema: CaregiverRecommendationsOutputSchema,
   },
   async input => {
-    const {output} = await caregiverRecommendationsPrompt(input);
+    const {output} = await caregiverRecommendationsPrompt({
+      ...input,
+      performanceDataString: JSON.stringify(input.performanceData),
+    });
     return output!;
   }
 );
