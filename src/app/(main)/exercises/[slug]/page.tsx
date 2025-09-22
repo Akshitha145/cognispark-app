@@ -12,9 +12,29 @@ import { FocusForestGame } from '@/components/games/focus-forest-game';
 import { StoryCreatorGame } from '@/components/games/story-creator-game';
 import { EmotionExplorerGame } from '@/components/games/emotion-explorer-game';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useVoiceInput } from '@/hooks/use-voice-input';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function ExercisePage({ params }: { params: { slug: string } }) {
+    const { toast } = useToast();
+    const { transcript, isListening, startListening, stopListening } = useVoiceInput({
+        onSpeechEnd: () => {
+            stopListening();
+        }
+    });
+
     const exercise = exercises.find((e) => e.id === params.slug);
+
+    useEffect(() => {
+        if (transcript) {
+            toast({
+                title: "Heard that!",
+                description: `You said: "${transcript}"`,
+            });
+        }
+    }, [transcript, toast]);
 
     if (!exercise) {
         notFound();
@@ -50,6 +70,14 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
                 )
         }
     }
+    
+    const handleMicClick = () => {
+        if (isListening) {
+            stopListening();
+        } else {
+            startListening();
+        }
+    };
 
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -60,7 +88,12 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
                     </Button>
                     <PageHeader title={exercise.title} description={exercise.description} />
                 </div>
-                <Button variant="outline" size="icon">
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleMicClick}
+                    className={cn(isListening && 'bg-destructive/20 border-destructive text-destructive-foreground')}
+                >
                     <Mic className="h-4 w-4" />
                     <span className="sr-only">Voice Commands</span>
                 </Button>
