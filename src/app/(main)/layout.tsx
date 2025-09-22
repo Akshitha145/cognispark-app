@@ -4,13 +4,13 @@ import { MainNav } from '@/components/main-nav';
 import { CogniSparkLogo } from '@/components/icons';
 import Link from 'next/link';
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
         <div className="flex h-full flex-col">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+            <Link href="/" className="flex items-center gap-2 font-semibold">
               <CogniSparkLogo className="h-6 w-6 text-primary" />
               <span className="font-headline text-lg">CogniSpark</span>
             </Link>
