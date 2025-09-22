@@ -7,12 +7,19 @@ import { RecentScoresTable } from '@/components/progress/recent-scores-table';
 import { children } from '@/lib/data';
 
 export default function ProgressPage() {
+    if (!children || children.length === 0) {
+        return (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+                <PageHeader title="No Progress Data" description="No children are assigned to your profile." />
+            </div>
+        )
+    }
     const selectedChild = children[0];
   
     return (
     <div className="flex flex-1 flex-col gap-6">
       <PageHeader
-        title="Detailed Progress for Alex"
+        title={`Detailed Progress for ${selectedChild.name}`}
         description="Dive deep into performance metrics and track improvements over time."
       />
 

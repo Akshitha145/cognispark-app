@@ -7,6 +7,15 @@ export type Child = {
   avatarHint?: string;
 };
 
+export type Caregiver = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  avatarHint?: string;
+  children: Child[];
+}
+
 export type Therapist = {
     id: string;
     name: string;

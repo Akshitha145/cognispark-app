@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { children, therapists, recentActivities } from '@/lib/data';
+import { allChildren, therapists, recentActivities } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Video } from 'lucide-react';
@@ -19,7 +19,7 @@ export default function TherapistPortalPage() {
   const therapist = therapists[0]; // Assuming we are logged in as the first therapist
   
   // For demonstration, let's assign all children to this therapist
-  const patients = children;
+  const patients = allChildren;
 
   return (
     <div className="flex min-h-screen flex-col">

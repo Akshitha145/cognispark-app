@@ -10,26 +10,25 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, Settings, User } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { caregiver } from '@/lib/data';
 
 export function UserNav() {
-  const caregiverAvatar = PlaceHolderImages.find(p => p.id === 'caregiver-avatar');
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={caregiverAvatar?.imageUrl} alt="Caregiver" data-ai-hint={caregiverAvatar?.imageHint} />
-            <AvatarFallback>CG</AvatarFallback>
+            <AvatarImage src={caregiver.avatar} alt={caregiver.name} data-ai-hint={caregiver.avatarHint} />
+            <AvatarFallback>{caregiver.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Caregiver</p>
+            <p className="text-sm font-medium leading-none">{caregiver.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              caregiver@example.com
+              {caregiver.email}
             </p>
           </div>
         </DropdownMenuLabel>

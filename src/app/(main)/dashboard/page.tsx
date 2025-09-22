@@ -15,6 +15,15 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
+    if (!children || children.length === 0) {
+        return (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+                <PageHeader title="Welcome!" description="It looks like there are no children assigned to your profile." />
+                <p className="text-muted-foreground">Please contact support to get set up.</p>
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-1 flex-col gap-4">
             <PageHeader title="Caregiver Dashboard" description="Welcome back! Here's an overview of your child's progress.">

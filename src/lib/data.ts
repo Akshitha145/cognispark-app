@@ -1,4 +1,4 @@
-import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist } from '@/lib/types';
+import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -6,15 +6,29 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 const alexAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-1');
 const bellaAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-2');
 const charlieAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-3');
+const caregiverAvatar = PlaceHolderImages.find(p => p.id === 'caregiver-avatar');
 const therapistAvatar1 = PlaceHolderImages.find(p => p.id === 'therapist-avatar-1');
 const therapistAvatar2 = PlaceHolderImages.find(p => p.id === 'therapist-avatar-2');
 
 
-export const children: Child[] = [
+export const allChildren: Child[] = [
   { id: 'child1', name: 'Alex', age: 7, disability: 'ADHD', avatar: alexAvatar?.imageUrl || '', avatarHint: alexAvatar?.imageHint },
   { id: 'child2', name: 'Bella', age: 9, disability: 'Autism', avatar: bellaAvatar?.imageUrl || '', avatarHint: bellaAvatar?.imageHint },
   { id: 'child3', name: 'Charlie', age: 8, disability: 'LD', avatar: charlieAvatar?.imageUrl || '', avatarHint: charlieAvatar?.imageHint },
 ];
+
+export const caregiver: Caregiver = {
+    id: 'caregiver1',
+    name: 'Sarah',
+    email: 'caregiver@example.com',
+    avatar: caregiverAvatar?.imageUrl || '',
+    avatarHint: caregiverAvatar?.imageHint,
+    children: [allChildren[0], allChildren[1]],
+}
+
+// For the dashboard, we only show the children of the logged-in caregiver.
+export const children = caregiver.children;
+
 
 export const therapists: Therapist[] = [
     { id: 'therapist1', name: 'Dr. Evelyn Reed', specialization: 'Cognitive Behavioral Therapy', avatar: therapistAvatar1?.imageUrl || '', avatarHint: therapistAvatar1?.imageHint },

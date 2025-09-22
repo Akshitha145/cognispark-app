@@ -18,19 +18,32 @@ type User = {
     type: 'Peer' | 'Therapist';
 };
 
-const peers = children.map((child, index) => ({
+const peers: User[] = children.map((child, index) => ({
     ...child,
     status: index % 2 === 0 ? 'Online' : 'Offline' as 'Online' | 'Offline',
     type: 'Peer' as 'Peer',
 }));
 
-const onlineTherapists = therapists.map((therapist, index) => ({
+const onlineTherapists: User[] = therapists.map((therapist, index) => ({
     ...therapist,
     status: index % 2 === 0 ? 'Online' : 'Offline' as 'Online' | 'Offline',
     type: 'Therapist' as 'Therapist',
 }));
 
 function ContactList({ title, users }: { title: string; users: User[] }) {
+    if (users.length === 0) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">No contacts available.</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <Card>
             <CardHeader>
