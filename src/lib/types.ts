@@ -7,6 +7,14 @@ export type Child = {
   avatarHint?: string;
 };
 
+export type Therapist = {
+    id: string;
+    name: string;
+    specialization: string;
+    avatar: string;
+    avatarHint?: string;
+}
+
 export type Exercise = {
   id: string;
   title: string;
@@ -34,3 +42,11 @@ export type RecentActivity = {
   timestamp: string;
   childName: string;
 };
+
+
+export type RecentScore = {
+    exercise: string;
+    score: number;
+    date: string;
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+}

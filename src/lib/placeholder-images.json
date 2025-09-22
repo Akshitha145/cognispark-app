@@ -23,6 +23,18 @@
       "description": "Avatar for caregiver",
       "imageUrl": "https://picsum.photos/seed/4/150/150",
       "imageHint": "adult portrait"
+    },
+    {
+      "id": "therapist-avatar-1",
+      "description": "Avatar for therapist 1",
+      "imageUrl": "https://picsum.photos/seed/5/150/150",
+      "imageHint": "therapist portrait"
+    },
+    {
+      "id": "therapist-avatar-2",
+      "description": "Avatar for therapist 2",
+      "imageUrl": "https://picsum.photos/seed/6/150/150",
+      "imageHint": "therapist portrait"
     }
   ]
 }

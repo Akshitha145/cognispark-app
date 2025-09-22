@@ -1,4 +1,4 @@
-import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity } from '@/lib/types';
+import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -6,12 +6,20 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 const alexAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-1');
 const bellaAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-2');
 const charlieAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-3');
+const therapistAvatar1 = PlaceHolderImages.find(p => p.id === 'therapist-avatar-1');
+const therapistAvatar2 = PlaceHolderImages.find(p => p.id === 'therapist-avatar-2');
+
 
 export const children: Child[] = [
   { id: 'child1', name: 'Alex', age: 7, disability: 'ADHD', avatar: alexAvatar?.imageUrl || '', avatarHint: alexAvatar?.imageHint },
   { id: 'child2', name: 'Bella', age: 9, disability: 'Autism', avatar: bellaAvatar?.imageUrl || '', avatarHint: bellaAvatar?.imageHint },
   { id: 'child3', name: 'Charlie', age: 8, disability: 'LD', avatar: charlieAvatar?.imageUrl || '', avatarHint: charlieAvatar?.imageHint },
 ];
+
+export const therapists: Therapist[] = [
+    { id: 'therapist1', name: 'Dr. Evelyn Reed', specialization: 'Cognitive Behavioral Therapy', avatar: therapistAvatar1?.imageUrl || '', avatarHint: therapistAvatar1?.imageHint },
+    { id: 'therapist2', name: 'Dr. Samuel Chen', specialization: 'Child Psychology', avatar: therapistAvatar2?.imageUrl || '', avatarHint: therapistAvatar2?.imageHint },
+]
 
 export const exercises: Exercise[] = [
   {
@@ -76,3 +84,52 @@ export const recentActivities: RecentActivity[] = [
     { id: '3', childName: 'Alex', activity: 'Completed Focus Forest (Easy)', timestamp: '1 day ago' },
     { id: '4', childName: 'Charlie', activity: 'Started the Story Creator exercise', timestamp: '2 days ago' },
 ];
+
+export const skillScores = {
+    'Memory': 88,
+    'Problem-Solving': 75,
+    'Attention': 62,
+    'Language': 80,
+    'Social-Emotional': 91,
+};
+
+export const exerciseScores = [
+    { name: 'Memory Match', score: 88 },
+    { name: 'Pattern Puzzles', score: 75 },
+    { name: 'Focus Forest', score: 62 },
+    { name: 'Story Creator', score: 80 },
+    { name: 'Emotion Explorer', score: 91 },
+]
+
+export const recentScores = [
+    {
+        exercise: "Emotion Explorer",
+        score: 91,
+        date: "2024-07-21",
+        difficulty: "Easy",
+    },
+    {
+        exercise: "Memory Match",
+        score: 88,
+        date: "2024-07-21",
+        difficulty: "Medium",
+    },
+    {
+        exercise: "Story Creator",
+        score: 80,
+        date: "2024-07-20",
+        difficulty: "Easy",
+    },
+    {
+        exercise: "Pattern Puzzles",
+        score: 75,
+        date: "2024-07-19",
+        difficulty: "Easy",
+    },
+    {
+        exercise: "Focus Forest",
+        score: 62,
+        date: "2024-07-18",
+        difficulty: "Medium",
+    },
+]
