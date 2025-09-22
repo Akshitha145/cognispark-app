@@ -28,9 +28,9 @@ export default function ChildPortalPage() {
                     title="Your Games"
                     description="Choose a game to play and earn points."
                 />
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [perspective:1000px]">
                     {exercises.map((exercise) => (
-                        <Card key={exercise.id} className="flex flex-col transform transition-transform hover:scale-105">
+                        <Card key={exercise.id} className="flex flex-col transition-transform duration-300 ease-in-out hover:shadow-2xl hover:[transform:rotateX(10deg)_translateZ(20px)]">
                             <CardHeader className="flex-row items-start gap-4 space-y-0">
                                 <div className="flex-shrink-0">
                                     <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
