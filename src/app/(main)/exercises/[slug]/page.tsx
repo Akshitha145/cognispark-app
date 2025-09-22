@@ -21,7 +21,7 @@ import { BackgroundMusic } from '@/components/games/background-music';
 export default function ExercisePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
     const { toast } = useToast();
-    const { transcript, isListening, startListening, stopListening } = useVoiceInput({
+    const { transcript, isListening, startListening, stopListening, isSupported } = useVoiceInput({
         onSpeechEnd: () => {
             stopListening();
         }
@@ -30,13 +30,13 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
     const exercise = exercises.find((e) => e.id === slug);
 
     useEffect(() => {
-        if (transcript) {
-            toast({
+        if (transcript && !isListening && exercise?.id !== 'emotion-explorer') {
+             toast({
                 title: "Heard that!",
                 description: `You said: "${transcript}"`,
             });
         }
-    }, [transcript, toast]);
+    }, [transcript, toast, isListening, exercise]);
 
     if (!exercise) {
         notFound();
@@ -53,7 +53,7 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
             case 'story-creator':
                 return <StoryCreatorGame exercise={exercise} />;
             case 'emotion-explorer':
-                return <EmotionExplorerGame exercise={exercise} />;
+                return <EmotionExplorerGame exercise={exercise} transcript={transcript} isListening={isListening} />;
             default:
                 return (
                      <Card className="flex-1">
@@ -74,6 +74,14 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
     }
     
     const handleMicClick = () => {
+        if (!isSupported) {
+            toast({
+                variant: 'destructive',
+                title: "Voice input not supported",
+                description: "Your browser does not support the Web Speech API.",
+            });
+            return;
+        }
         if (isListening) {
             stopListening();
         } else {
