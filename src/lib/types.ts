@@ -4,6 +4,7 @@ export type Child = {
   age: number;
   disability: string;
   avatar: string;
+  avatarHint?: string;
 };
 
 export type Exercise = {

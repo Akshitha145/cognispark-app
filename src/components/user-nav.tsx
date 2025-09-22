@@ -10,14 +10,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, Settings, User } from 'lucide-react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export function UserNav() {
+  const caregiverAvatar = PlaceHolderImages.find(p => p.id === 'caregiver-avatar');
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="https://i.pravatar.cc/150?u=caregiver" alt="Caregiver" />
+            <AvatarImage src={caregiverAvatar?.imageUrl} alt="Caregiver" data-ai-hint={caregiverAvatar?.imageHint} />
             <AvatarFallback>CG</AvatarFallback>
           </Avatar>
         </Button>

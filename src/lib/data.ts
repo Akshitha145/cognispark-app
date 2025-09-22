@@ -1,12 +1,16 @@
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
+const alexAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-1');
+const bellaAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-2');
+const charlieAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-3');
 
 export const children: Child[] = [
-  { id: 'child1', name: 'Alex', age: 7, disability: 'ADHD', avatar: 'https://i.pravatar.cc/150?u=alex' },
-  { id: 'child2', name: 'Bella', age: 9, disability: 'Autism', avatar: 'https://i.pravatar.cc/150?u=bella' },
-  { id: 'child3', name: 'Charlie', age: 8, disability: 'LD', avatar: 'https://i.pravatar.cc/150?u=charlie' },
+  { id: 'child1', name: 'Alex', age: 7, disability: 'ADHD', avatar: alexAvatar?.imageUrl || '', avatarHint: alexAvatar?.imageHint },
+  { id: 'child2', name: 'Bella', age: 9, disability: 'Autism', avatar: bellaAvatar?.imageUrl || '', avatarHint: bellaAvatar?.imageHint },
+  { id: 'child3', name: 'Charlie', age: 8, disability: 'LD', avatar: charlieAvatar?.imageUrl || '', avatarHint: charlieAvatar?.imageHint },
 ];
 
 export const exercises: Exercise[] = [
