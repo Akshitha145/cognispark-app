@@ -85,14 +85,24 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
 
     useEffect(() => {
         if (flippedCards.length === 2) {
-            const [firstId, secondId] = flippedCards;
             setAttempts(prev => prev + 1);
-            if (cards[firstId].symbol === cards[secondId].symbol) {
+            const [firstId, secondId] = flippedCards;
+            const firstCard = cards.find(c => c.id === firstId);
+            const secondCard = cards.find(c => c.id === secondId);
+
+            if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
                 setCards(prev => prev.map(card =>
-                    card.symbol === cards[firstId].symbol ? { ...card, isMatched: true } : card
+                    card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
                 ));
+                 setTimeout(() => setFlippedCards([]), 1000);
+            } else {
+                 setTimeout(() => {
+                    setCards(prev => prev.map(card => 
+                        (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
+                    ));
+                    setFlippedCards([]);
+                }, 1000);
             }
-            setTimeout(() => setFlippedCards([]), 1000);
         }
     }, [flippedCards, cards]);
 
@@ -109,8 +119,9 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     }, [state]);
 
     const handleCardClick = (id: number) => {
-        if (flippedCards.length < 2 && !cards[id].isFlipped && !isComplete) {
-            setCards(prev => prev.map(card => card.id === id ? { ...card, isFlipped: true } : card));
+        const card = cards.find(c => c.id === id);
+        if (flippedCards.length < 2 && card && !card.isFlipped && !isComplete) {
+            setCards(prev => prev.map(c => c.id === id ? { ...c, isFlipped: true } : c));
             setFlippedCards(prev => [...prev, id]);
         }
     };
