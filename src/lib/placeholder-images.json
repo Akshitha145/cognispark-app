@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "child-avatar-1",
+      "description": "Avatar for child Alex",
+      "imageUrl": "https://picsum.photos/seed/1/150/150",
+      "imageHint": "child portrait"
+    },
+    {
+      "id": "child-avatar-2",
+      "description": "Avatar for child Bella",
+      "imageUrl": "https://picsum.photos/seed/2/150/150",
+      "imageHint": "child portrait"
+    },
+    {
+      "id": "child-avatar-3",
+      "description": "Avatar for child Charlie",
+      "imageUrl": "https://picsum.photos/seed/3/150/150",
+      "imageHint": "child portrait"
+    },
+    {
+      "id": "caregiver-avatar",
+      "description": "Avatar for caregiver",
+      "imageUrl": "https://picsum.photos/seed/4/150/150",
+      "imageHint": "adult portrait"
+    }
+  ]
 }
