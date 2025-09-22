@@ -1,13 +1,18 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function BackgroundMusic() {
     const audioRef = useRef<HTMLAudioElement>(null);
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        const audio = audioRef.current;
-        if (audio) {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted && audioRef.current) {
+            const audio = audioRef.current;
             audio.volume = 0.1; // Set a low volume
             // Autoplay can be tricky. This is a common approach.
             audio.play().catch(error => {
@@ -21,7 +26,11 @@ export function BackgroundMusic() {
                 window.addEventListener('click', playOnFirstClick);
             });
         }
-    }, []);
+    }, [isMounted]);
+
+    if (!isMounted) {
+        return null;
+    }
 
     return (
         <audio ref={audioRef} loop>
