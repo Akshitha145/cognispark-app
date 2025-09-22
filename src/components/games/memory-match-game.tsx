@@ -76,13 +76,13 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
             const secondCard = cards.find(c => c.id === secondId);
 
             if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
-                if (!isPlaying) playAudio('You found a match!', 'kn-IN');
+                if (!isPlaying) playAudio('You found a match!', 'en-US');
                 setCards(prev => prev.map(card =>
                     card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
                 ));
                  setTimeout(() => setFlippedCards([]), 500);
             } else {
-                 if (!isPlaying) playAudio('Oops, try again!', 'kn-IN');
+                 if (!isPlaying) playAudio('Oops, try again!', 'en-US');
                  setTimeout(() => {
                     setCards(prev => prev.map(card => 
                         (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
@@ -95,7 +95,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
 
     useEffect(() => {
         if(cards.length > 0 && cards.every(c => c.isMatched)) {
-            if (!isPlaying) playAudio('Great Job! You completed the game!', 'kn-IN');
+            if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
             setIsComplete(true);
         }
     }, [cards, playAudio, isPlaying]);
