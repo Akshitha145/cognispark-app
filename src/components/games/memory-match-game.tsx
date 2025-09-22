@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw, BrainCircuit, Puzzle, Bot, HeartHandshake, Rocket, Gem } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -10,9 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { getAdaptedExercise, type FormState } from '@/app/(main)/exercises/[slug]/actions';
 import type { Exercise } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Rocket, Gem } from 'lucide-react';
 
-const icons = [BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Rocket, Gem, Star];
+const icons = [BrainCircuit, Puzzle, Bot, HeartHandshake, Rocket, Gem];
 const cardSymbols = [...icons, ...icons].sort(() => Math.random() - 0.5);
 
 type MemoryCard = {
@@ -70,7 +69,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     const [cards, setCards] = useState<MemoryCard[]>(createBoard());
     const [flippedCards, setFlippedCards] = useState<number[]>([]);
     const [attempts, setAttempts] = useState(0);
-    const [difficulty, setDifficulty] = useState('Medium');
+    const [difficulty, setDifficulty] = useState('Easy');
     const [isComplete, setIsComplete] = useState(false);
 
     const initialState: FormState = null;
@@ -78,7 +77,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     
     const performance = useMemo(() => {
         if (attempts === 0) return 100;
-        const baseScore = Math.max(0, 100 - (attempts - icons.length) * 5);
+        const baseScore = Math.max(0, 100 - (attempts - icons.length) * 10);
         return baseScore;
     }, [attempts]);
 
@@ -107,7 +106,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     }, [flippedCards, cards]);
 
     useEffect(() => {
-        if(cards.every(c => c.isMatched)) {
+        if(cards.length > 0 && cards.every(c => c.isMatched)) {
             setIsComplete(true);
         }
     }, [cards]);
@@ -156,7 +155,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
                             </Button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-5 gap-4 [perspective:1000px]">
+                        <div className="grid grid-cols-4 gap-4 [perspective:1000px]">
                             {cards.map(card => (
                                 <MemoryCardComponent key={card.id} card={card} onCardClick={handleCardClick} />
                             ))}
