@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw, BrainCircuit, Puzzle, Bot, HeartHandshake, Rocket, Gem } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Star, CheckCircle, RotateCcw, BrainCircuit, Puzzle, Bot, HeartHandshake } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -11,8 +11,8 @@ import { getAdaptedExercise, type FormState } from '@/app/(main)/exercises/[slug
 import type { Exercise } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const icons = [BrainCircuit, Puzzle, Bot, HeartHandshake, Rocket, Gem];
-const cardSymbols = [...icons, ...icons].sort(() => Math.random() - 0.5);
+const icons = [BrainCircuit, Puzzle, Bot, HeartHandshake];
+const cardSymbols = [...icons.slice(0, 2), ...icons.slice(0, 2)].sort(() => Math.random() - 0.5);
 
 type MemoryCard = {
   id: number;
@@ -77,7 +77,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     
     const performance = useMemo(() => {
         if (attempts === 0) return 100;
-        const baseScore = Math.max(0, 100 - (attempts - icons.length) * 10);
+        const baseScore = Math.max(0, 100 - (attempts - icons.length/2) * 20);
         return baseScore;
     }, [attempts]);
 
@@ -155,7 +155,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
                             </Button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-4 gap-4 [perspective:1000px]">
+                        <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto [perspective:1000px]">
                             {cards.map(card => (
                                 <MemoryCardComponent key={card.id} card={card} onCardClick={handleCardClick} />
                             ))}
