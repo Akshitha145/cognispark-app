@@ -12,7 +12,6 @@ export function CogniSparkLogo(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       {...props}
     >
-      <path d="M12 2a10 10 0 0 0-3.91 19.33 3.5 3.5 0 0 0 4.83-2.33 3.5 3.5 0 0 0-2.33-4.83 10 10 0 0 0 6.24-8.17 9.92 9.92 0 0 0-4.83-8.33" />
       <path d="M15.5 6.5l-3 3-3-3" />
       <path d="M12.5 9.5l3 3" />
       <path d="M7 14l-1.5 1.5" />
