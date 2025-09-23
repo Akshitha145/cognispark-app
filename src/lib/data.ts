@@ -56,46 +56,48 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        console.log("Attempting to fetch caregiver data from 'caregiver' collection...");
+        // Step 1: Fetch the first caregiver document from the 'caregiver' collection.
         const caregiverQuery = query(collection(db, "caregiver"), limit(1));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
-            console.error("Firestore Error: No documents found in the 'caregiver' collection. Please ensure you have created this collection and added at least one caregiver document.");
+            console.error("Firestore Error: No documents found in the 'caregiver' collection.");
             return null;
         }
 
         const caregiverDoc = caregiverSnapshot.docs[0];
         const caregiverData = caregiverDoc.data();
-        const caregiverId = caregiverDoc.id;
-        console.log(`Successfully found caregiver with ID: ${caregiverId}`);
+        const caregiverId = caregiverDoc.id; // This is the actual Document ID, e.g., "caregiver1"
 
+        // Step 2: Fetch all children where 'caregiverId' matches the ID found in Step 1.
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnapshot = await getDocs(childrenQuery);
-
+        
         let childrenData: Child[] = [];
         if (childrenSnapshot.empty) {
-            console.warn(`Firestore Warning: Found caregiver '${caregiverId}', but no children were found with a matching 'caregiverId' field in the 'children' collection.`);
+            console.warn(`Firestore Warning: No children found with caregiverId: ${caregiverId}`);
         } else {
-            childrenData = childrenSnapshot.docs.map(doc => {
+             childrenData = childrenSnapshot.docs.map(doc => {
                 const childData = doc.data();
+                // Handle both 'Name' and 'name' for resilience.
+                const name = childData.Name || childData.name || 'Unnamed Child';
                 return {
                     id: doc.id,
-                    name: childData.Name || childData.name || 'Unnamed Child',
+                    name: name,
                     age: childData.age || 0,
                     disability: childData.disability || 'N/A',
                     profilePhoto: childData.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
                 };
             });
-            console.log(`Found ${childrenData.length} children linked to caregiver ${caregiverId}.`);
         }
         
+        // Step 3: Assemble the final caregiver object.
         const assembledCaregiver: Caregiver = {
             id: caregiverId,
             name: caregiverData.Name || caregiverData.name || 'Caregiver',
             email: caregiverData.Email || caregiverData.email || 'no-email@example.com',
             profilePhoto: caregiverData.profilePhoto || `https://picsum.photos/seed/${caregiverId}/150/150`,
-            children: childrenData // This property is kept for consistency but might not be used directly
+            children: childrenData 
         };
 
         return {
@@ -237,3 +239,5 @@ export async function getAllChildren(): Promise<Child[]> {
         return [];
     }
 }
+
+    
