@@ -16,6 +16,7 @@ import { CreditCard, LogOut, Settings, User, Loader2 } from 'lucide-react';
 import type { Caregiver, Therapist } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { Skeleton } from './ui/skeleton';
 
 type LoggedInUser = (Caregiver | Therapist) & { type: 'Caregiver' | 'Therapist' };
 
