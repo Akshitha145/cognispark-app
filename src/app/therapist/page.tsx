@@ -48,7 +48,7 @@ export default function TherapistPortalPage() {
 
   if (isLoading) {
     return (
-        <div className="flex h-screen flex-col">
+        <div className="flex min-h-screen flex-col">
             <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
                  <div className="flex items-center gap-4">
                      <h1 className="font-headline text-xl font-bold">Therapist Portal</h1>
