@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, RotateCcw, XCircle, Lightbulb, Square, Triangle } from 'lucide-react';
+import { CheckCircle, RotateCcw, XCircle, Lightbulb, Square, Triangle, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Exercise, Child } from '@/lib/types';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
@@ -29,6 +29,7 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
     const performance = Math.round((score / puzzles.length) * 100);
 
     const handleOptionClick = (index: number) => {
+        if (selectedOption !== null) return;
         setSelectedOption(index);
         const correct = index === currentPuzzle.correct;
         setIsCorrect(correct);
@@ -74,7 +75,7 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
         <Card>
             <CardHeader>
                 <CardTitle>{exercise.title}</CardTitle>
-                <CardDescription>Find the shape that matches the one shown.</CardDescription>
+                <CardDescription>Match the shapes to complete the puzzle!</CardDescription>
             </CardHeader>
             <CardContent>
                 {isComplete ? (
@@ -86,13 +87,18 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
                         <Button onClick={handleRestart}><RotateCcw className="mr-2 h-4 w-4" /> Play Again</Button>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center gap-8">
-                        <div className="text-lg">Find this shape:</div>
-                        <div className="flex items-center justify-center h-24 w-24 rounded-lg bg-muted">
-                            <TargetIcon className="h-16 w-16 text-primary" />
+                    <div className="flex items-center justify-center gap-12 p-4">
+                        <div className="flex flex-col items-center gap-4">
+                             <div className="flex items-center justify-center h-24 w-24 rounded-lg bg-muted">
+                                <TargetIcon className="h-16 w-16 text-primary" />
+                            </div>
+                            <div className="w-px h-12 bg-border"></div>
+                             <div className="flex items-center justify-center h-24 w-24 rounded-lg border-2 border-dashed border-muted-foreground">
+                                <HelpCircle className="h-12 w-12 text-muted-foreground/50" />
+                            </div>
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             {currentPuzzle.options.map((Icon, index) => {
                                 const isSelected = selectedOption === index;
                                 const isTheCorrect = isCorrect !== null && index === currentPuzzle.correct;
@@ -101,14 +107,16 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
                                     key={index}
                                     variant="outline"
                                     className={cn(
-                                        "h-24 w-24",
-                                        isSelected && isCorrect === false && "bg-destructive/20 border-destructive text-destructive-foreground",
+                                        "h-24 w-24 relative",
+                                        isSelected && isCorrect === false && "bg-destructive/20 border-destructive",
                                         isTheCorrect && "bg-green-500/20 border-green-500"
                                     )}
                                     onClick={() => handleOptionClick(index)}
                                     disabled={selectedOption !== null}
                                 >
                                     <Icon className="h-12 w-12" />
+                                    {isSelected && isCorrect === false && <XCircle className="h-5 w-5 absolute -top-2 -right-2 text-white bg-destructive rounded-full" />}
+                                    {isTheCorrect && <CheckCircle className="h-5 w-5 absolute -top-2 -right-2 text-white bg-green-500 rounded-full" />}
                                 </Button>
                             )})}
                         </div>
