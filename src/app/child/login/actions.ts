@@ -3,13 +3,13 @@
 
 import { db } from '@/lib/firebase';
 import type { Child } from '@/lib/types';
-import { collection, addDoc, getDocs, query, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query } from 'firebase/firestore';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
 const registerChildSchema = z.object({
     name: z.string().min(2, { message: 'Name must be at least 2 characters long.' }),
-    age: z.coerce.number().min(3, { message: 'You must be at least 3 years old to play.' }),
+    caregiverName: z.string().min(2, { message: "Caretaker's name must be at least 2 characters." }),
 });
 
 export type FormState = {
@@ -25,12 +25,12 @@ export async function registerChild(
 ): Promise<FormState> {
     const validatedFields = registerChildSchema.safeParse({
         name: formData.get('name'),
-        age: formData.get('age'),
+        caregiverName: formData.get('caregiverName'),
     });
 
     if (!validatedFields.success) {
         return {
-            message: validatedFields.error.flatten().fieldErrors.name?.[0] || validatedFields.error.flatten().fieldErrors.age?.[0] || 'Invalid data.',
+            message: validatedFields.error.flatten().fieldErrors.name?.[0] || validatedFields.error.flatten().fieldErrors.caregiverName?.[0] || 'Invalid data.',
             fields: {
                 ...Object.fromEntries(formData.entries()) as any,
             },
@@ -38,33 +38,51 @@ export async function registerChild(
     }
     
     try {
-        // Find the first caregiver to associate the child with.
-        const caregiverQuery = query(collection(db, "caregiver"), limit(1));
+        const { name, caregiverName } = validatedFields.data;
+
+        // Step 1: Find the caregiver by name (case-insensitive).
+        const caregiverQuery = query(collection(db, "caregiver"));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
-            return { message: 'Could not find a caregiver profile. Please ask your caregiver to sign up first.' };
+            return { message: 'No caregiver profiles found in the database. A caregiver must sign up first.' };
         }
-        const caregiverId = caregiverSnapshot.docs[0].id;
+
+        let foundCaregiverDoc = null;
+        for (const doc of caregiverSnapshot.docs) {
+            const caregiverData = doc.data();
+            const docName = caregiverData.Name || caregiverData.name;
+            if (docName && docName.toLowerCase() === caregiverName.toLowerCase()) {
+                foundCaregiverDoc = doc;
+                break;
+            }
+        }
+
+        if (!foundCaregiverDoc) {
+             return { message: 'Caretaker name not found. Please check the spelling and try again.' };
+        }
+        
+        const caregiverId = foundCaregiverDoc.id;
         
         // Add the new child document to the 'children' collection
         const childDocRef = await addDoc(collection(db, 'children'), {
-            name: validatedFields.data.name,
-            age: validatedFields.data.age,
+            name: name,
+            age: 0, // Age can be updated later
             caregiverId: caregiverId,
             disability: 'N/A', // Default value
-            profilePhoto: `https://picsum.photos/seed/${validatedFields.data.name}/150/150`,
+            profilePhoto: `https://picsum.photos/seed/${name}/150/150`,
         });
 
         const newChild: Child = {
             id: childDocRef.id,
-            ...validatedFields.data,
+            name: name,
+            age: 0,
             disability: 'N/A',
-            profilePhoto: `https://picsum.photos/seed/${validatedFields.data.name}/150/150`,
+            profilePhoto: `https://picsum.photos/seed/${name}/150/150`,
         };
 
-        // Revalidate path to ensure new child shows up on other lists if needed.
         revalidatePath('/');
+        revalidatePath('/child');
 
         return {
             message: "success",

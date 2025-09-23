@@ -11,15 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CogniSparkLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 function SubmitButton() {
-    // This is a placeholder for pending state, which is not available in 'use client' with 'useFormStatus'
-    // For a real app, we would handle pending state.
-    return <Button type="submit" className="w-full">Let's Play!</Button>;
+    return <Button type="submit" className="w-full">Sign Up & Play!</Button>;
 }
 
 
-export default function ChildLoginPage() {
+export default function ChildRegisterPage() {
     const router = useRouter();
     const { toast } = useToast();
 
@@ -48,28 +47,38 @@ export default function ChildLoginPage() {
         <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
              <div className="flex items-center gap-2 mb-4">
                 <CogniSparkLogo className="h-8 w-8 text-primary" />
-                <h1 className="font-headline text-4xl font-bold">Welcome!</h1>
+                <h1 className="font-headline text-4xl font-bold">Get Ready to Play!</h1>
             </div>
-            <p className="text-muted-foreground text-lg mb-8">Let's get you set up to play.</p>
+            <p className="text-muted-foreground text-lg mb-8">Create your player account.</p>
 
             <Card className="w-full max-w-sm">
+                <form action={formAction} >
                 <CardHeader>
-                    <CardTitle>Tell us about you</CardTitle>
-                    <CardDescription>Enter your name and age to start playing.</CardDescription>
+                    <CardTitle>Sign Up</CardTitle>
+                    <CardDescription>Enter your name and your caregiver's name to create an account.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form action={formAction} className="space-y-4">
+                <CardContent className="space-y-4">
+                    
                         <div className="space-y-2">
                             <Label htmlFor="name">Your Name</Label>
                             <Input id="name" name="name" type="text" placeholder="e.g. Alex" required />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="age">Your Age</Label>
-                            <Input id="age" name="age" type="number" placeholder="e.g. 8" required />
+                            <Label htmlFor="caregiverName">Caretaker Name</Label>
+                            <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" required />
                         </div>
-                        <SubmitButton />
-                    </form>
+                       
                 </CardContent>
+                 <CardFooter className="flex flex-col gap-4">
+                    <SubmitButton />
+                     <p className="text-muted-foreground text-sm">
+                        Already have an account?{' '}
+                        <Button variant="link" className="p-0 h-auto" asChild>
+                            <Link href="/">Log In</Link>
+                        </Button>
+                    </p>
+                </CardFooter>
+                 </form>
             </Card>
         </div>
     );
