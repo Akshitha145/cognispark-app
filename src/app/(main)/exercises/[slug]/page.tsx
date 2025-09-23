@@ -2,7 +2,7 @@
 'use client';
 
 import { notFound } from 'next/navigation';
-import { exercises, getCaregiverData } from '@/lib/data';
+import { exercises } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -19,10 +19,12 @@ import { useEffect, useState, use } from 'react';
 import { cn } from '@/lib/utils';
 import { BackgroundMusic } from '@/components/games/background-music';
 import type { Child } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 export default function ExercisePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
     const { toast } = useToast();
+    const router = useRouter();
     const [child, setChild] = useState<Child | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -31,20 +33,17 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
             stopListening();
         }
     });
-
-    useEffect(() => {
-        async function fetchChild() {
-            setIsLoading(true);
-            const caregiverData = await getCaregiverData();
-            if (caregiverData && caregiverData.children.length > 0) {
-                // For now, let's assume the first child is the one playing.
-                // In a real app, you'd have a child selection mechanism.
-                setChild(caregiverData.children[0]);
-            }
-            setIsLoading(false);
+     useEffect(() => {
+        const storedChild = localStorage.getItem('currentChild');
+        if (storedChild) {
+            setChild(JSON.parse(storedChild));
+        } else {
+            // If no child is logged in, redirect to the main page or login.
+            // For now, we go back to the role selection.
+            router.push('/');
         }
-        fetchChild();
-    }, []);
+        setIsLoading(false);
+    }, [router]);
 
     const exercise = exercises.find((e) => e.id === slug);
 
@@ -74,8 +73,8 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Error" description="Could not identify the player." />
-                <p className="text-muted-foreground">Please ensure a child is assigned to the primary caregiver's profile.</p>
-                <Button asChild><Link href="/dashboard">Return to Dashboard</Link></Button>
+                <p className="text-muted-foreground">Please log in via the Child Portal to play.</p>
+                <Button asChild><Link href="/child/login">Go to Login</Link></Button>
             </div>
         )
     }
@@ -134,7 +133,7 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
             <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-4'>
                     <Button variant="outline" size="icon" asChild>
-                        <Link href="/exercises"><ArrowLeft className="h-4 w-4" /></Link>
+                        <Link href="/child"><ArrowLeft className="h-4 w-4" /></Link>
                     </Button>
                     <PageHeader title={exercise.title} description={exercise.description} />
                 </div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -8,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Volume2, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { Child } from '@/lib/types';
 
 function PlayAudioButton({ text, languageCode }: { text: string, languageCode: string }) {
     const { playAudio, isPlaying } = useAudioPlayer();
@@ -34,19 +38,47 @@ function PlayAudioButton({ text, languageCode }: { text: string, languageCode: s
 
 
 export default function ChildPortalPage() {
+    const [child, setChild] = useState<Child | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const storedChild = localStorage.getItem('currentChild');
+        if (storedChild) {
+            setChild(JSON.parse(storedChild));
+        } else {
+            router.push('/child/login');
+        }
+        setIsLoading(false);
+    }, [router]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('currentChild');
+        router.push('/child/login');
+    };
+
+    if (isLoading || !child) {
+        return (
+            <div className="flex min-h-screen flex-col items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <p className="text-muted-foreground mt-2">Loading...</p>
+            </div>
+        )
+    }
+
     return (
         <div className="flex min-h-screen flex-col">
             <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
                 <div className="flex items-center gap-4">
-                    <h1 className="font-headline text-2xl font-bold">Let's Play!</h1>
+                    <h1 className="font-headline text-2xl font-bold">Let's Play, {child.name}!</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Star className="h-6 w-6 text-yellow-500" />
                         <span className="font-bold text-lg">1250 Points</span>
                     </div>
-                    <Button variant="outline" asChild>
-                        <Link href="/">Switch User</Link>
+                    <Button variant="outline" onClick={handleLogout}>
+                        Switch User
                     </Button>
                 </div>
             </header>
