@@ -1,60 +1,84 @@
 
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+'use client';
+
+import { useFormState } from 'react-dom';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, HeartHandshake, Baby } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { CogniSparkLogo } from '@/components/icons';
+import { useToast } from '@/hooks/use-toast';
+import { authenticateChild, type AuthFormState } from './actions';
+import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 
-const roles = [
-  {
-    name: 'Caregiver',
-    description: 'Monitor progress and manage settings.',
-    icon: User,
-    href: '/dashboard',
-    cta: 'Go to Dashboard',
-  },
-  {
-    name: 'Therapist',
-    description: 'Oversee multiple children and track data.',
-    icon: HeartHandshake,
-    href: '/therapist',
-    cta: 'Go to Portal',
-  },
-  {
-    name: 'Child',
-    description: 'Play games and earn rewards!',
-    icon: Baby,
-    href: '/child',
-    cta: 'Start Playing',
-  },
-];
+function SubmitButton() {
+    // This is a placeholder for pending state, which is not available in 'use client' with 'useFormStatus'
+    // For a real app, we would handle pending state.
+    return <Button type="submit" className="w-full">Login</Button>;
+}
 
-export default function RoleSelectionPage() {
+export default function LoginPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const initialState: AuthFormState = { message: '' };
+  const [state, formAction] = useFormState(authenticateChild, initialState);
+
+  useEffect(() => {
+    if (state.message === 'success' && state.child) {
+        toast({
+            title: `Welcome back, ${state.child.name}!`,
+            description: `Let's play some games!`,
+        });
+        localStorage.setItem('currentChild', JSON.stringify(state.child));
+        router.push('/child');
+    } else if (state.message && state.message !== 'success') {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: state.message,
+        });
+    }
+  }, [state, router, toast]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-        <div className="flex items-center gap-2 mb-8">
-            <CogniSparkLogo className="h-8 w-8 text-primary" />
-            <h1 className="font-headline text-4xl font-bold">Welcome to CogniSpark</h1>
-        </div>
-        <p className="text-muted-foreground text-lg mb-10">Please select your role to continue.</p>
-        <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
-            {roles.map((role) => (
-            <Card key={role.name} className="flex flex-col text-center">
-                <CardHeader>
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-                        <role.icon className="h-8 w-8 text-primary" />
-                    </div>
-                    <CardTitle>{role.name}</CardTitle>
-                    <CardDescription>{role.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow flex items-end justify-center">
-                    <Button asChild className="w-full">
-                        <Link href={role.href}>{role.cta}</Link>
-                    </Button>
-                </CardContent>
-            </Card>
-            ))}
+      <div className="flex items-center gap-2 mb-8">
+        <CogniSparkLogo className="h-8 w-8 text-primary" />
+        <h1 className="font-headline text-4xl font-bold">Welcome to CogniSpark</h1>
       </div>
+      <p className="text-muted-foreground text-lg mb-10">Please login to continue or sign up.</p>
+      
+      <Card className="w-full max-w-sm">
+        <form action={formAction}>
+          <CardHeader>
+            <CardTitle>Child Login</CardTitle>
+            <CardDescription>Enter your name and your Caretaker's ID to login.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Your Name</Label>
+              <Input id="name" name="name" type="text" placeholder="e.g. Alex" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="caregiverId">Caretaker ID</Label>
+              <Input id="caregiverId" name="caregiverId" type="text" placeholder="e.g. caregiver1" required />
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <SubmitButton />
+             <p className="text-xs text-center text-muted-foreground">
+                Don't have an account?{' '}
+                <Button variant="link" className="p-0 h-auto" asChild>
+                    <Link href="/child/login">Sign Up</Link>
+                </Button>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
 }
