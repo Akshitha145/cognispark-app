@@ -2,6 +2,7 @@
 
 
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -75,13 +76,6 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         const caregiverId = caregiverSnap.id;
         const data = caregiverSnap.data();
 
-        const caregiverData: Omit<Caregiver, 'id'> = {
-            name: data.Name || data.name,
-            email: data.Email || data.email,
-            profilePhoto: data.profilePhoto || data.profilePic || '',
-            children: []
-        };
-
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnap = await getDocs(childrenQuery);
 
@@ -96,12 +90,16 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
             } as Child;
         });
         
+        const caregiverData: Caregiver = {
+            id: caregiverId,
+            name: data.Name || data.name,
+            email: data.Email || data.email,
+            profilePhoto: data.profilePhoto || data.profilePic || '',
+            children: childrenData
+        };
+
         return {
-            caregiver: {
-                id: caregiverId,
-                ...caregiverData,
-                children: childrenData,
-            },
+            caregiver: caregiverData,
             children: childrenData
         };
 
