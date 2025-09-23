@@ -8,13 +8,25 @@ import { BubbleIcon } from '@/components/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 type Bubble = {
   id: number;
   x: number;
   size: number;
   duration: number;
+  color: string;
 };
+
+const bubbleColors = [
+    'hsl(var(--primary) / 0.4)',
+    'hsl(var(--accent) / 0.4)',
+    '#8b5cf666', // voilet-500 with 40% opacity
+    '#ec489966', // pink-500 with 40% opacity
+    '#22d3ee66', // cyan-400 with 40% opacity
+];
+const popSoundUrl = 'https://www.zapsplat.com/wp-content/uploads/2015/sound-effects-zapsplat/zapsplat_multimedia_button_click_fast_short_soft_001_63852.mp3';
+
 
 let bubbleId = 0;
 
@@ -28,6 +40,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
                 x: Math.random() * 90, // % from left
                 size: Math.random() * 40 + 30, // 30px to 70px
                 duration: Math.random() * 5 + 5, // 5 to 10 seconds
+                color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
             };
             setBubbles(prev => [...prev, newBubble]);
         };
@@ -39,7 +52,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
 
     const handlePop = (id: number) => {
         setBubbles(prev => prev.filter(bubble => bubble.id !== id));
-        // Optional: Play a soft pop sound
+        new Audio(popSoundUrl).play().catch(e => console.error("Error playing sound", e));
     };
 
     return (
@@ -65,10 +78,10 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
                             animate={{ y: -450 }}
                             exit={{ scale: 1.5, opacity: 0 }}
                             transition={{ duration: bubble.duration, ease: "linear" }}
-                            onAnimationComplete={() => handlePop(bubble.id)}
+                            onAnimationComplete={() => setBubbles(prev => prev.filter(b => b.id !== bubble.id))}
                         >
                             <button onClick={() => handlePop(bubble.id)} className="w-full h-full">
-                               <BubbleIcon className="w-full h-full text-primary/40" />
+                               <BubbleIcon style={{ color: bubble.color }} className="w-full h-full" />
                             </button>
                         </motion.div>
                     ))}
