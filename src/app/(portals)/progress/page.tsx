@@ -114,7 +114,7 @@ export default function ProgressPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{bestSkill.skill}</div>
-                    <p className="text-xs text-muted-foreground">{bestSkill.score}% average score</p>
+                    <p className="text-xs text-muted-foreground">{bestSkill.score > 0 ? `${bestSkill.score}% average score` : 'Play more games!'}</p>
                 </CardContent>
             </Card>
             <Card>
@@ -124,7 +124,7 @@ export default function ProgressPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{improvementSkill.skill}</div>
-                    <p className="text-xs text-muted-foreground">{improvementSkill.score}% average score</p>
+                    <p className="text-xs text-muted-foreground">{improvementSkill.score < 101 ? `${improvementSkill.score}% average score` : 'Play more games!'}</p>
                 </CardContent>
             </Card>
             <Card>
