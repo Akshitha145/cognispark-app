@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { allChildren, therapists, recentActivities } from '@/lib/data';
+import { allChildren, recentActivities } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Video } from 'lucide-react';
@@ -14,12 +14,24 @@ import {
     TableHeader,
     TableRow,
   } from '@/components/ui/table';
+import type { Therapist } from '@/lib/types';
 
 export default function TherapistPortalPage() {
-  const therapist = therapists[0]; // Assuming we are logged in as the first therapist
+  // Temporary placeholder until Firestore is connected
+  const therapist: Therapist = {
+      id: 'therapist1',
+      name: 'Dr. Evelyn Reed',
+      specialization: 'Cognitive Behavioral Therapy',
+      avatar: 'https://picsum.photos/seed/5/150/150',
+      avatarHint: 'therapist portrait',
+  };
   
   // For demonstration, let's assign all children to this therapist
   const patients = allChildren;
+
+  if (!therapist) {
+    return <div>Loading therapist data...</div>
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
