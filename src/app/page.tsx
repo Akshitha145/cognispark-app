@@ -14,8 +14,6 @@ import { authenticateChild, type AuthFormState } from './actions';
 import Link from 'next/link';
 
 function SubmitButton() {
-    // This is a placeholder for pending state, which is not available in 'use client' with 'useFormStatus'
-    // For a real app, we would handle pending state.
     return <Button type="submit" className="w-full">Login</Button>;
 }
 
@@ -23,7 +21,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const initialState: AuthFormState = { message: '' };
+  const initialState: AuthFormState = null;
   const [state, formAction] = useActionState(authenticateChild, initialState);
 
   useEffect(() => {
@@ -49,7 +47,7 @@ export default function LoginPage() {
         <CogniSparkLogo className="h-8 w-8 text-primary" />
         <h1 className="font-headline text-4xl font-bold">Welcome to CogniSpark</h1>
       </div>
-      <p className="text-muted-foreground text-lg mb-10">Please login to continue or sign up.</p>
+      <p className="text-muted-foreground text-lg mb-10">Please login to continue.</p>
       
       <Card className="w-full max-w-sm">
         <form action={formAction}>

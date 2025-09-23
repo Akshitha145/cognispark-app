@@ -3,7 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import type { Child } from '@/lib/types';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { z } from 'zod';
 
 const authenticateChildSchema = z.object({
@@ -35,8 +35,7 @@ export async function authenticateChild(
     try {
         const { name, caregiverName } = validatedFields.data;
 
-        // Step 1: Find the caregiver by name.
-        // Firestore queries are case-sensitive. We will fetch and filter in code for case-insensitivity.
+        // Step 1: Find the caregiver by name (case-insensitive).
         const caregiverQuery = query(collection(db, "caregiver"));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
@@ -60,29 +59,28 @@ export async function authenticateChild(
         
         const caregiverId = foundCaregiverDoc.id;
 
-        // Step 2: Find the child with the matching name and caregiverId.
-        const childQuery = query(
-            collection(db, "children"),
-            where("caregiverId", "==", caregiverId)
-        );
+        // Step 2: Find the child with the matching name and caregiverId (case-insensitive).
+        const childQuery = query(collection(db, "children"));
         const childSnapshot = await getDocs(childQuery);
 
         if (childSnapshot.empty) {
-            return { message: 'No children found for the specified caretaker. Please check the caretaker name.' };
+            return { message: 'No children found in the database.' };
         }
 
         let foundChildDoc = null;
         for (const doc of childSnapshot.docs) {
             const childData = doc.data();
             const docName = childData.name || childData.Name;
-            if (docName && docName.toLowerCase() === name.toLowerCase()) {
+            const docCaregiverId = childData.caregiverId;
+
+            if (docName && docName.toLowerCase() === name.toLowerCase() && docCaregiverId === caregiverId) {
                 foundChildDoc = doc;
                 break;
             }
         }
 
         if (!foundChildDoc) {
-            return { message: 'Your name was not found for the provided Caretaker. Please check the name.' };
+            return { message: 'Your name was not found for the provided Caretaker. Please check your details.' };
         }
 
         const childData = foundChildDoc.data();

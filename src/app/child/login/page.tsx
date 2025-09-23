@@ -17,7 +17,6 @@ function SubmitButton() {
     return <Button type="submit" className="w-full">Sign Up & Play!</Button>;
 }
 
-
 export default function ChildRegisterPage() {
     const router = useRouter();
     const { toast } = useToast();

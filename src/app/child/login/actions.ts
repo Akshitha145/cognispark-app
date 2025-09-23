@@ -30,10 +30,8 @@ export async function registerChild(
 
     if (!validatedFields.success) {
         return {
-            message: validatedFields.error.flatten().fieldErrors.name?.[0] || validatedFields.error.flatten().fieldErrors.caregiverName?.[0] || 'Invalid data.',
-            fields: {
-                ...Object.fromEntries(formData.entries()) as any,
-            },
+            message: 'Invalid data provided.',
+            fields: Object.fromEntries(formData.entries()) as any,
         };
     }
     
@@ -67,18 +65,18 @@ export async function registerChild(
         // Add the new child document to the 'children' collection
         const childDocRef = await addDoc(collection(db, 'children'), {
             name: name,
-            age: 0, // Age can be updated later
+            age: 7, // Default age, can be updated later
             caregiverId: caregiverId,
             disability: 'N/A', // Default value
-            profilePhoto: `https://picsum.photos/seed/${name}/150/150`,
+            profilePhoto: `https://picsum.photos/seed/${name.replace(/\s/g, '')}/150/150`,
         });
 
         const newChild: Child = {
             id: childDocRef.id,
             name: name,
-            age: 0,
+            age: 7,
             disability: 'N/A',
-            profilePhoto: `https://picsum.photos/seed/${name}/150/150`,
+            profilePhoto: `https://picsum.photos/seed/${name.replace(/\s/g, '')}/150/150`,
         };
 
         revalidatePath('/');
