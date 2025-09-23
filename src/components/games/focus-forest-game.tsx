@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, RotateCcw } from 'lucide-react';
 import type { Exercise } from '@/lib/types';
+import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
+import { useToast } from '@/hooks/use-toast';
 
 // Using emojis for a more playful feel
 const animals = ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁'];
@@ -33,6 +35,9 @@ export function FocusForestGame({ exercise }: { exercise: Exercise }) {
     const [isComplete, setIsComplete] = useState(false);
     const [startTime, setStartTime] = useState<number>(0);
     const [timeTaken, setTimeTaken] = useState<number | null>(null);
+    const { toast } = useToast();
+    
+    const performance = timeTaken ? Math.max(10, 100 - Math.floor(timeTaken - 3) * 10) : 0;
 
     useEffect(() => {
         setLevelItems(generateLevel());
@@ -49,6 +54,21 @@ export function FocusForestGame({ exercise }: { exercise: Exercise }) {
         }
     };
     
+    useEffect(() => {
+        async function handleCompletion() {
+            if (isComplete) {
+                // TODO: Get the real childId
+                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty: 'Medium' });
+                if (result.success) {
+                    toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
+                } else {
+                    toast({ variant: 'destructive', title: 'Error', description: 'Could not save your score.' });
+                }
+            }
+        }
+        handleCompletion();
+    }, [isComplete, exercise.id, performance, toast]);
+
     const handleRestart = () => {
         setLevelItems(generateLevel());
         setIsComplete(false);
@@ -56,7 +76,6 @@ export function FocusForestGame({ exercise }: { exercise: Exercise }) {
         setTimeTaken(null);
     };
     
-    const performance = timeTaken ? Math.max(10, 100 - Math.floor(timeTaken - 3) * 10) : 0;
 
     return (
         <Card>

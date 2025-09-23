@@ -49,6 +49,14 @@ export type RecentActivity = {
   childName: string;
 };
 
+export type GameSession = {
+    id?: string;
+    childId: string;
+    exerciseId: string;
+    score: number;
+    difficulty: string;
+    timestamp: Date;
+}
 
 export type RecentScore = {
     exercise: string;
@@ -56,5 +64,3 @@ export type RecentScore = {
     date: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
 }
-
-    

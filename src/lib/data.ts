@@ -1,10 +1,9 @@
-
-import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
+import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore, GameSession } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { db } from './firebase';
-import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, limit, orderBy, Timestamp } from 'firebase/firestore';
+import { subDays, format } from 'date-fns';
 
 export const exercises: Exercise[] = [
   {
@@ -54,16 +53,13 @@ export const badges: Badge[] = [
 ];
 
 
-// --- Firestore Data Fetching Functions ---
-
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        // 1. Fetch the first caregiver document
         const caregiverQuery = query(collection(db, "caregiver"), limit(1));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
-            console.error("CRITICAL: No documents found in the 'caregiver' collection.");
+            console.warn("No documents found in 'caregiver' collection.");
             return null;
         }
 
@@ -71,7 +67,6 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         const caregiverData = caregiverDoc.data();
         const caregiverId = caregiverDoc.id;
 
-        // 2. Fetch children linked to this caregiver
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnapshot = await getDocs(childrenQuery);
 
@@ -100,38 +95,50 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         };
 
     } catch (error) {
-        console.error("FATAL ERROR in getCaregiverData:", error);
-        // If there's any error during the process, return null to prevent crashes.
+        console.error("Error in getCaregiverData:", error);
         return null;
     }
 }
 
 
 export async function getDashboardData(childId: string, childName: string) {
+    const sessions = await getGameSessions(childId, 7);
+
+    const timeSpent = sessions.reduce((acc, session) => acc + 2, 0); // Assuming 2 mins per session
+    const exercisesCompleted = sessions.length;
+
     const overviewStats = {
-        timeSpent: "3h 15m",
-        timeSpentTrend: "+20%",
-        exercisesCompleted: 15,
-        exercisesCompletedTrend: "+3",
-        badgesEarned: 2,
-        latestBadge: "Memory Master"
+        timeSpent: `${Math.floor(timeSpent / 60)}h ${timeSpent % 60}m`,
+        timeSpentTrend: "+0%", // Placeholder
+        exercisesCompleted: exercisesCompleted,
+        exercisesCompletedTrend: "+0", // Placeholder
+        badgesEarned: 0, // Placeholder
+        latestBadge: "N/A" // Placeholder
     };
 
-    const progressChartData: ProgressDataPoint[] = [
-        { date: 'Mon', 'Cognitive Score': 75, 'Time Spent (min)': 30 },
-        { date: 'Tue', 'Cognitive Score': 80, 'Time Spent (min)': 45 },
-        { date: 'Wed', 'Cognitive Score': 78, 'Time Spent (min)': 25 },
-        { date: 'Thu', 'Cognitive Score': 85, 'Time Spent (min)': 50 },
-        { date: 'Fri', 'Cognitive Score': 88, 'Time Spent (min)': 40 },
-        { date: 'Sat', 'Cognitive Score': 90, 'Time Spent (min)': 60 },
-        { date: 'Sun', 'Cognitive Score': 92, 'Time Spent (min)': 55 },
-    ];
+    const progressChartData: ProgressDataPoint[] = Array.from({ length: 7 }).map((_, i) => {
+        const date = subDays(new Date(), 6 - i);
+        const dateString = format(date, 'EEE');
+        const sessionsOnDay = sessions.filter(s => format(s.timestamp, 'EEE') === dateString);
+        
+        const avgScore = sessionsOnDay.length > 0
+            ? sessionsOnDay.reduce((sum, s) => sum + s.score, 0) / sessionsOnDay.length
+            : 0;
+            
+        const timeSpentOnDay = sessionsOnDay.length * 2; // Assuming 2 mins per session
+
+        return { date: dateString, 'Cognitive Score': Math.round(avgScore), 'Time Spent (min)': timeSpentOnDay };
+    });
     
-    const recentActivities: RecentActivity[] = [
-        { id: '1', childName: childName, activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
-        { id: '2', childName: childName, activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
-        { id: '3', childName: childName, activity: 'Started Focus Forest', timestamp: '2 days ago' },
-    ];
+    const recentActivities: RecentActivity[] = sessions.slice(0, 3).map((session, index) => {
+        const exercise = exercises.find(e => e.id === session.exerciseId);
+        return {
+            id: session.id || `${index}`,
+            childName: childName,
+            activity: `Completed ${exercise?.title || session.exerciseId}`,
+            timestamp: format(session.timestamp, 'PPp')
+        }
+    });
 
     return {
         overviewStats,
@@ -139,6 +146,39 @@ export async function getDashboardData(childId: string, childName: string) {
         recentActivities,
     }
 }
+
+export async function getGameSessions(childId: string, days: number): Promise<GameSession[]> {
+    try {
+        const endDate = new Date();
+        const startDate = subDays(endDate, days);
+        
+        const sessionsQuery = query(
+            collection(db, "gameSessions"), 
+            where("childId", "==", childId),
+            where("timestamp", ">=", startDate),
+            orderBy("timestamp", "desc")
+        );
+
+        const sessionsSnap = await getDocs(sessionsQuery);
+        if (sessionsSnap.empty) {
+            return [];
+        }
+
+        return sessionsSnap.docs.map(doc => {
+            const data = doc.data();
+            return { 
+                id: doc.id,
+                ...data,
+                timestamp: (data.timestamp as Timestamp).toDate(),
+            } as GameSession;
+        });
+
+    } catch (error) {
+        console.error("Error fetching game sessions:", error);
+        return [];
+    }
+}
+
 
 export async function getAllTherapists(): Promise<Therapist[]> {
     try {
@@ -188,29 +228,15 @@ export async function getAllChildren(): Promise<Child[]> {
 
 // --- Static Data ---
 // Kept for reference or for parts of the app not yet connected to Firestore.
-
-export const progressData: ProgressDataPoint[] = [];
 export const skillScores = {
-    'Memory': 88,
-    'Problem-Solving': 75,
-    'Attention': 62,
-    'Language': 80,
-    'Social-Emotional': 91,
+    'Memory': 0,
+    'Problem-Solving': 0,
+    'Attention': 0,
+    'Language': 0,
+    'Social-Emotional': 0,
 };
-export const exerciseScores = [
-  { name: 'Memory Match', score: 88 },
-  { name: 'Pattern Puzzles', score: 75 },
-  { name: 'Focus Forest', score: 62 },
-  { name: 'Story Creator', score: 80 },
-  { name: 'Emotion Explorer', score: 91 },
-];
-
-export const recentScores: RecentScore[] = [
-    { exercise: 'Memory Match', score: 92, date: '2024-05-20T10:00:00Z', difficulty: 'Hard' },
-    { exercise: 'Pattern Puzzles', score: 85, date: '2024-05-19T14:30:00Z', difficulty: 'Medium' },
-    { exercise: 'Focus Forest', score: 70, date: '2024-05-18T09:00:00Z', difficulty: 'Medium' },
-    { exercise: 'Story Creator', score: 95, date: '2024-05-17T11:00:00Z', difficulty: 'Easy' },
-];
+export const exerciseScores = [];
+export const recentScores: RecentScore[] = [];
 export const children: Child[] = [];
 export const therapists: Therapist[] = [];
 export const recentActivities: RecentActivity[] = [];

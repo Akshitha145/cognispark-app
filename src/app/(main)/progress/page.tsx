@@ -6,20 +6,47 @@ import { Activity, Star, TrendingDown, TrendingUp, Loader2 } from 'lucide-react'
 import { ProgressRadarChart } from '@/components/progress/progress-radar-chart';
 import { ExerciseScoresBarChart } from '@/components/progress/exercise-scores-bar-chart';
 import { RecentScoresTable } from '@/components/progress/recent-scores-table';
-import { getCaregiverData } from '@/lib/data';
+import { getCaregiverData, getGameSessions } from '@/lib/data';
 import { useEffect, useState } from 'react';
-import type { Child } from '@/lib/types';
+import type { Child, GameSession } from '@/lib/types';
+import { exercises } from '@/lib/data';
+
+function calculateSkillScores(sessions: GameSession[]) {
+    const skillData: { [key: string]: { totalScore: number, count: number } } = {};
+
+    sessions.forEach(session => {
+        const exercise = exercises.find(e => e.id === session.exerciseId);
+        if (exercise) {
+            if (!skillData[exercise.skill]) {
+                skillData[exercise.skill] = { totalScore: 0, count: 0 };
+            }
+            skillData[exercise.skill].totalScore += session.score;
+            skillData[exercise.skill].count++;
+        }
+    });
+
+    const skillScores = Object.entries(skillData).map(([skill, data]) => ({
+        skill,
+        score: Math.round(data.totalScore / data.count)
+    }));
+
+    return skillScores;
+}
 
 export default function ProgressPage() {
-    const [children, setChildren] = useState<Child[]>([]);
+    const [child, setChild] = useState<Child | null>(null);
+    const [sessions, setSessions] = useState<GameSession[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
-            const data = await getCaregiverData();
-            if (data && data.children) {
-                setChildren(data.children);
+            const caregiverData = await getCaregiverData();
+            if (caregiverData && caregiverData.children.length > 0) {
+                const firstChild = caregiverData.children[0];
+                setChild(firstChild);
+                const gameSessions = await getGameSessions(firstChild.id, 30);
+                setSessions(gameSessions);
             }
             setIsLoading(false);
         }
@@ -34,20 +61,38 @@ export default function ProgressPage() {
         )
     }
 
-    if (!children || children.length === 0) {
+    if (!child) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                <PageHeader title="No Progress Data" description="No children are assigned to your profile, or data is still loading." />
-                 <p className="text-muted-foreground">Ensure a caregiver and a child with a matching 'caregiverId' exist in Firestore.</p>
+                <PageHeader title="No Progress Data" description="No child data found. Please ensure a child is assigned to your profile." />
             </div>
         )
     }
-    const selectedChild = children[0];
+    
+    if (sessions.length === 0) {
+        return (
+            <div className="flex flex-1 flex-col gap-6">
+                <PageHeader
+                    title={`Detailed Progress for ${child.name}`}
+                    description="Dive deep into performance metrics and track improvements over time."
+                />
+                 <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center rounded-lg border-2 border-dashed py-24">
+                    <p className="text-muted-foreground">No progress data available yet.</p>
+                    <p>Play some games to see your progress here!</p>
+                </div>
+            </div>
+        )
+    }
+
+    const skillScores = calculateSkillScores(sessions);
+    const bestSkill = skillScores.reduce((max, skill) => skill.score > max.score ? skill : max, { skill: 'N/A', score: 0 });
+    const improvementSkill = skillScores.reduce((min, skill) => skill.score < min.score ? skill : min, { skill: 'N/A', score: 101 });
+    const totalTime = sessions.length * 2; // Assuming 2 mins per session
   
     return (
     <div className="flex flex-1 flex-col gap-6">
       <PageHeader
-        title={`Detailed Progress for ${selectedChild.name}`}
+        title={`Detailed Progress for ${child.name}`}
         description="Dive deep into performance metrics and track improvements over time."
       />
 
@@ -58,8 +103,8 @@ export default function ProgressPage() {
                     <Star className="h-4 w-4 text-amber-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">Memory</div>
-                    <p className="text-xs text-muted-foreground">88% average score</p>
+                    <div className="text-2xl font-bold">{bestSkill.skill}</div>
+                    <p className="text-xs text-muted-foreground">{bestSkill.score}% average score</p>
                 </CardContent>
             </Card>
             <Card>
@@ -68,8 +113,8 @@ export default function ProgressPage() {
                     <TrendingDown className="h-4 w-4 text-destructive" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">Attention</div>
-                    <p className="text-xs text-muted-foreground">62% average score</p>
+                    <div className="text-2xl font-bold">{improvementSkill.skill}</div>
+                    <p className="text-xs text-muted-foreground">{improvementSkill.score}% average score</p>
                 </CardContent>
             </Card>
             <Card>
@@ -78,8 +123,8 @@ export default function ProgressPage() {
                     <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">12h 45m</div>
-                    <p className="text-xs text-muted-foreground">+3h from last month</p>
+                    <div className="text-2xl font-bold">{Math.floor(totalTime / 60)}h {totalTime % 60}m</div>
+                    <p className="text-xs text-muted-foreground">in the last 30 days</p>
                 </CardContent>
             </Card>
             <Card>
@@ -88,7 +133,7 @@ export default function ProgressPage() {
                     <TrendingUp className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">+7%</div>
+                    <div className="text-2xl font-bold">+0%</div>
                     <p className="text-xs text-muted-foreground">Improvement over last 7 days</p>
                 </CardContent>
             </Card>
@@ -96,14 +141,14 @@ export default function ProgressPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
             <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
-                <ProgressRadarChart />
+                <ProgressRadarChart data={skillScores} />
             </div>
             <div className="col-span-1 flex flex-col gap-6 lg:col-span-3">
-                <ExerciseScoresBarChart />
+                <ExerciseScoresBarChart data={sessions} />
             </div>
         </div>
 
-        <RecentScoresTable />
+        <RecentScoresTable data={sessions} />
     </div>
   );
 }

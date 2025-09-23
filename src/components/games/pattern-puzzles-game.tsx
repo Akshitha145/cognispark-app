@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, RotateCcw, XCircle, Lightbulb, Square, Triangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Exercise } from '@/lib/types';
+import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const puzzles = [
     { target: Square, options: [Square, Triangle, Lightbulb], correct: 0 },
@@ -20,8 +22,10 @@ export function PatternPuzzlesGame({ exercise }: { exercise: Exercise }) {
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [isComplete, setIsComplete] = useState(false);
     const [score, setScore] = useState(0);
+    const { toast } = useToast();
 
     const currentPuzzle = useMemo(() => puzzles[currentPuzzleIndex], [currentPuzzleIndex]);
+    const performance = Math.round((score / puzzles.length) * 100);
 
     const handleOptionClick = (index: number) => {
         setSelectedOption(index);
@@ -41,6 +45,21 @@ export function PatternPuzzlesGame({ exercise }: { exercise: Exercise }) {
         }, 1500);
     };
 
+     useEffect(() => {
+        async function handleCompletion() {
+            if (isComplete) {
+                // TODO: Get the real childId
+                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
+                if (result.success) {
+                    toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
+                } else {
+                    toast({ variant: 'destructive', title: 'Error', description: 'Could not save your score.' });
+                }
+            }
+        }
+        handleCompletion();
+    }, [isComplete, exercise.id, performance, toast]);
+
     const handleRestart = () => {
         setCurrentPuzzleIndex(0);
         setSelectedOption(null);
@@ -49,7 +68,6 @@ export function PatternPuzzlesGame({ exercise }: { exercise: Exercise }) {
         setScore(0);
     };
 
-    const performance = Math.round((score / puzzles.length) * 100);
     const TargetIcon = currentPuzzle.target;
 
     return (

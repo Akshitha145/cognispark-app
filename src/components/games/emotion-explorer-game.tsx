@@ -7,6 +7,7 @@ import { CheckCircle, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Exercise } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 
 const scenarios = [
     { text: 'You got a new puppy!', emotion: '😊', name: 'happy' },
@@ -41,7 +42,8 @@ export function EmotionExplorerGame({
     const [score, setScore] = useState(0);
 
     const currentScenario = useMemo(() => scenarios[currentScenarioIndex], [currentScenarioIndex]);
-    
+    const performance = Math.round((score / scenarios.length) * 100);
+
     const handleEmotionSelect = (emotionName: string) => {
         const selected = emotions.find(e => e.name === emotionName);
         if (!selected) return;
@@ -85,6 +87,21 @@ export function EmotionExplorerGame({
         }
     }, [transcript, isListening, selectedEmotion]);
 
+     useEffect(() => {
+        async function handleCompletion() {
+            if (isComplete) {
+                // TODO: Get the real childId
+                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
+                if (result.success) {
+                    toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
+                } else {
+                    toast({ variant: 'destructive', title: 'Error', description: 'Could not save your score.' });
+                }
+            }
+        }
+        handleCompletion();
+    }, [isComplete, exercise.id, performance, toast]);
+
 
     const handleRestart = () => {
         setCurrentScenarioIndex(0);
@@ -94,8 +111,6 @@ export function EmotionExplorerGame({
         setScore(0);
     };
     
-    const performance = Math.round((score / scenarios.length) * 100);
-
     return (
         <Card>
             <CardHeader>

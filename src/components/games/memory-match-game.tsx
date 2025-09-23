@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import type { Exercise } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
+import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const icons = [BrainCircuit, Puzzle];
 const cardSymbols = [...icons, ...icons].sort(() => Math.random() - 0.5);
@@ -61,6 +63,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     const [isComplete, setIsComplete] = useState(false);
     const { playAudio, isPlaying } = useAudioPlayer();
     const [isMounted, setIsMounted] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         setCards(createBoard());
@@ -100,11 +103,22 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
     }, [flippedCards, cards, playAudio, isPlaying, isMounted]);
 
     useEffect(() => {
-        if (isMounted && cards.length > 0 && cards.every(c => c.isMatched)) {
-            if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
-            setIsComplete(true);
+        async function handleCompletion() {
+            if (isMounted && cards.length > 0 && cards.every(c => c.isMatched)) {
+                if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
+                setIsComplete(true);
+
+                // TODO: Get the real childId
+                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty });
+                if (result.success) {
+                    toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
+                } else {
+                    toast({ variant: 'destructive', title: 'Error', description: 'Could not save your score.' });
+                }
+            }
         }
-    }, [cards, playAudio, isPlaying, isMounted]);
+        handleCompletion();
+    }, [cards, playAudio, isPlaying, isMounted, exercise.id, performance, difficulty, toast]);
     
 
     const handleCardClick = (id: number) => {

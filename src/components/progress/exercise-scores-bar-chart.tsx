@@ -1,9 +1,10 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { exerciseScores } from '@/lib/data';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import type { GameSession } from '@/lib/types';
+import { exercises } from '@/lib/data';
 
 const chartConfig = {
   score: {
@@ -12,7 +13,27 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ExerciseScoresBarChart() {
+export function ExerciseScoresBarChart({ data: sessions }: { data: GameSession[]}) {
+  
+  const exerciseData: { [key: string]: { totalScore: number, count: number } } = {};
+
+  sessions.forEach(session => {
+    const exercise = exercises.find(e => e.id === session.exerciseId);
+    if (exercise) {
+        if (!exerciseData[exercise.title]) {
+            exerciseData[exercise.title] = { totalScore: 0, count: 0 };
+        }
+        exerciseData[exercise.title].totalScore += session.score;
+        exerciseData[exercise.title].count++;
+    }
+  });
+
+  const chartData = Object.entries(exerciseData).map(([name, data]) => ({
+      name,
+      score: Math.round(data.totalScore / data.count)
+  }));
+
+
   return (
     <Card>
       <CardHeader>
@@ -22,7 +43,7 @@ export function ExerciseScoresBarChart() {
       <CardContent className="h-[300px] w-full p-2">
         <ResponsiveContainer width="100%" height="100%">
             <ChartContainer config={chartConfig}>
-                <BarChart data={exerciseScores} accessibilityLayer>
+                <BarChart data={chartData} accessibilityLayer>
                     <CartesianGrid vertical={false} />
                     <XAxis
                     dataKey="name"
