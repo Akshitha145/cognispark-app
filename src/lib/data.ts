@@ -4,7 +4,7 @@ import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapi
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket, Palette } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 import { db } from './firebase';
-import { collection, doc, getDoc, getDocs, query, where, limit, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, limit, orderBy, Timestamp, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { subDays, format } from 'date-fns';
 
 export const exercises: Exercise[] = [
@@ -159,24 +159,24 @@ export async function getDashboardData(childId: string, childName: string) {
     }
 }
 
-export async function getGameSessions(childId: string, days: number): Promise<GameSession[]> {
-    try {
-        const endDate = new Date();
-        const startDate = subDays(endDate, days);
-        
-        const sessionsQuery = query(
-            collection(db, "gameSessions"), 
-            where("childId", "==", childId),
-            where("timestamp", ">=", startDate),
-            orderBy("timestamp", "desc")
-        );
+export function getGameSessions(childId: string, days: number, onUpdate: (sessions: GameSession[]) => void): Unsubscribe {
+    const endDate = new Date();
+    const startDate = subDays(endDate, days);
+    
+    const sessionsQuery = query(
+        collection(db, "gameSessions"), 
+        where("childId", "==", childId),
+        where("timestamp", ">=", startDate),
+        orderBy("timestamp", "desc")
+    );
 
-        const sessionsSnap = await getDocs(sessionsQuery);
-        if (sessionsSnap.empty) {
-            return [];
+    const unsubscribe = onSnapshot(sessionsQuery, (snapshot) => {
+        if (snapshot.empty) {
+            onUpdate([]);
+            return;
         }
 
-        return sessionsSnap.docs.map(doc => {
+        const sessions = snapshot.docs.map(doc => {
             const data = doc.data();
             const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
             return { 
@@ -188,11 +188,13 @@ export async function getGameSessions(childId: string, days: number): Promise<Ga
                 timestamp: timestamp,
             } as GameSession;
         });
+        onUpdate(sessions);
+    }, (error) => {
+        console.error("Error fetching game sessions in real-time:", error);
+        onUpdate([]);
+    });
 
-    } catch (error) {
-        console.error("Error fetching game sessions:", error);
-        return [];
-    }
+    return unsubscribe;
 }
 
 

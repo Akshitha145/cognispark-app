@@ -42,22 +42,23 @@ export default function ProgressPage() {
     const router = useRouter();
 
     useEffect(() => {
-        async function fetchData() {
-            setIsLoading(true);
-            const storedChild = localStorage.getItem('currentChild');
-            if (storedChild) {
-                const childData: Child = JSON.parse(storedChild);
-                setChild(childData);
-                const gameSessions = await getGameSessions(childData.id, 30);
-                setSessions(gameSessions);
-            } else {
-                // If no child is logged in, redirect to the child login page
-                // This could also redirect to a role selection or main login page
-                router.push('/child/login');
-            }
-            setIsLoading(false);
+        const storedChild = localStorage.getItem('currentChild');
+        let childData: Child | null = null;
+        if (storedChild) {
+            childData = JSON.parse(storedChild);
+            setChild(childData);
+        } else {
+            router.push('/child/login');
+            return;
         }
-        fetchData();
+
+        if (childData) {
+             const unsubscribe = getGameSessions(childData.id, 30, (gameSessions) => {
+                setSessions(gameSessions);
+                setIsLoading(false);
+            });
+            return () => unsubscribe();
+        }
     }, [router]);
 
     if (isLoading) {

@@ -46,21 +46,27 @@ export default function ChildPortalPage() {
 
     useEffect(() => {
         const storedChild = localStorage.getItem('currentChild');
+        let childData: Child | null = null;
         if (storedChild) {
-            const childData: Child = JSON.parse(storedChild);
+            childData = JSON.parse(storedChild);
             setChild(childData);
-            
-            async function fetchScore() {
-                const sessions = await getGameSessions(childData.id, 365); // Fetch all-time sessions
-                const points = sessions.reduce((acc, session) => acc + session.score, 0);
-                setTotalPoints(points);
-            }
-            fetchScore();
-
         } else {
             router.push('/child/login');
+            return;
         }
         setIsLoading(false);
+
+        if (childData) {
+            // Set up real-time listener for game sessions
+            const unsubscribe = getGameSessions(childData.id, 365, (sessions) => {
+                const points = sessions.reduce((acc, session) => acc + session.score, 0);
+                setTotalPoints(points);
+            });
+    
+            // Cleanup listener on component unmount
+            return () => unsubscribe();
+        }
+
     }, [router]);
 
     const handleLogout = () => {
