@@ -6,6 +6,7 @@
 
 
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -65,7 +66,6 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        // 1. Fetch the first caregiver document from the 'caregivers' collection.
         const caregiversQuery = query(collection(db, "caregivers"), limit(1));
         const caregiverSnaps = await getDocs(caregiversQuery);
 
@@ -76,9 +76,8 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         
         const caregiverSnap = caregiverSnaps.docs[0];
         const caregiverDocData = caregiverSnap.data();
-        const caregiverId = caregiverSnap.id; // Get the actual ID of the caregiver document.
+        const caregiverId = caregiverSnap.id;
 
-        // 2. Use the caregiver's ID to find matching children.
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnaps = await getDocs(childrenQuery);
         
