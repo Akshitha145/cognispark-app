@@ -6,20 +6,87 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Phone, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+
+
+// A placeholder for fetching user data, which will be replaced with a Firestore call.
+const getUserById = async (id: string) => {
+    const placeholderUsers = [
+        { id: 'child1', name: 'Alex', avatar: 'https://picsum.photos/seed/1/150/150', avatarHint: 'child portrait' },
+        { id: 'child2', name: 'Bella', avatar: 'https://picsum.photos/seed/2/150/150', avatarHint: 'child portrait' },
+        { id: 'child3', name: 'Charlie', avatar: 'https://picsum.photos/seed/3/150/150', avatarHint: 'child portrait' },
+        { id: 'therapist1', name: 'Dr. Evelyn Reed', avatar: 'https://picsum.photos/seed/5/150/150', avatarHint: 'therapist portrait' },
+        { id: 'therapist2', name: 'Dr. Samuel Chen', avatar: 'https://picsum.photos/seed/6/150/150', avatarHint: 'therapist portrait' },
+    ]
+    return placeholderUsers.find(u => u.id === id);
+}
+
 
 export default function CallPage() {
     const params = useParams();
     const { id } = params;
+    const { toast } = useToast();
 
-    const user = [...allChildren, ...therapists].find(u => u.id === id);
-    
+    const [user, setUser] = useState<{name: string, avatar: string, avatarHint?: string} | null>(null);
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
+    const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            if (typeof id === 'string') {
+                const foundUser = await getUserById(id);
+                if (foundUser) {
+                    setUser(foundUser);
+                } else {
+                    notFound();
+                }
+            }
+        };
+        fetchUser();
+    }, [id]);
+
+    useEffect(() => {
+        const getCameraPermission = async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            setHasCameraPermission(true);
+    
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+            }
+          } catch (error) {
+            console.error('Error accessing camera:', error);
+            setHasCameraPermission(false);
+            toast({
+              variant: 'destructive',
+              title: 'Camera Access Denied',
+              description: 'Please enable camera permissions in your browser settings to use this app.',
+            });
+          }
+        };
+    
+        getCameraPermission();
+
+        return () => {
+            if (videoRef.current && videoRef.current.srcObject) {
+                const stream = videoRef.current.srcObject as MediaStream;
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+      }, [toast]);
+
 
     if (!user) {
-        notFound();
+        return (
+            <div className="flex h-[calc(100vh-8rem)] items-center justify-center">
+                <p>Loading...</p>
+            </div>
+        )
     }
 
     return (
@@ -40,11 +107,21 @@ export default function CallPage() {
                  <div className="relative flex items-center justify-center bg-black/50">
                     <p className="text-white">Remote user video (placeholder)</p>
                 </div>
-                <Card className="absolute bottom-4 right-4 h-48 w-64">
-                    <CardContent className="p-2 h-full flex items-center justify-center">
-                         <p className="text-muted-foreground text-sm">Your video (placeholder)</p>
+                <Card className="absolute bottom-4 right-4 h-48 w-64 bg-black overflow-hidden">
+                    <CardContent className="p-0 h-full flex items-center justify-center">
+                         <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                     </CardContent>
                 </Card>
+                {hasCameraPermission === false && (
+                    <div className="absolute bottom-4 right-4 h-48 w-64 p-2">
+                        <Alert variant="destructive">
+                            <AlertTitle>Camera Access Required</AlertTitle>
+                            <AlertDescription>
+                                Please allow camera access to use this feature.
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                )}
             </main>
             <footer className="flex items-center justify-center p-4 border-t gap-4">
                 <Button variant={isMuted ? 'secondary' : 'outline'} size="icon" className="h-12 w-12 rounded-full" onClick={() => setIsMuted(p => !p)}>
