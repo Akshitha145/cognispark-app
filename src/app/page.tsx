@@ -56,7 +56,7 @@ export default function LoginPage() {
         <form action={formAction}>
           <CardHeader>
             <CardTitle>Child Login</CardTitle>
-            <CardDescription>Enter your name and your Caretaker's ID to login.</CardDescription>
+            <CardDescription>Enter your name and your Caretaker's name to login.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -64,8 +64,8 @@ export default function LoginPage() {
               <Input id="name" name="name" type="text" placeholder="e.g. Alex" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="caregiverId">Caretaker ID</Label>
-              <Input id="caregiverId" name="caregiverId" type="text" placeholder="e.g. caregiver1" required />
+              <Label htmlFor="caregiverName">Caretaker Name</Label>
+              <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" required />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">

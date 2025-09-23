@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 const authenticateChildSchema = z.object({
     name: z.string().trim().min(1, { message: 'Name cannot be empty.' }),
-    caregiverId: z.string().trim().min(1, { message: 'Caretaker ID cannot be empty.' }),
+    caregiverName: z.string().trim().min(1, { message: 'Caretaker Name cannot be empty.' }),
 });
 
 export type AuthFormState = {
@@ -22,35 +22,58 @@ export async function authenticateChild(
 ): Promise<AuthFormState> {
     const validatedFields = authenticateChildSchema.safeParse({
         name: formData.get('name'),
-        caregiverId: formData.get('caregiverId'),
+        caregiverName: formData.get('caregiverName'),
     });
 
     if (!validatedFields.success) {
         const errors = validatedFields.error.flatten().fieldErrors;
         return {
-            message: errors.name?.[0] || errors.caregiverId?.[0] || 'Invalid data provided.',
+            message: errors.name?.[0] || errors.caregiverName?.[0] || 'Invalid data provided.',
         };
     }
 
     try {
-        const { name, caregiverId } = validatedFields.data;
+        const { name, caregiverName } = validatedFields.data;
 
-        // Firestore queries are case-sensitive. We will fetch by caregiverId first, then filter by name.
-        const q = query(
+        // Step 1: Find the caregiver by name.
+        // Firestore queries are case-sensitive. We will fetch and filter in code for case-insensitivity.
+        const caregiverQuery = query(collection(db, "caregiver"));
+        const caregiverSnapshot = await getDocs(caregiverQuery);
+
+        if (caregiverSnapshot.empty) {
+            return { message: 'No caregiver profiles found in the database. Please contact support.' };
+        }
+
+        let foundCaregiverDoc = null;
+        for (const doc of caregiverSnapshot.docs) {
+            const caregiverData = doc.data();
+            const docName = caregiverData.Name || caregiverData.name;
+            if (docName && docName.toLowerCase() === caregiverName.toLowerCase()) {
+                foundCaregiverDoc = doc;
+                break;
+            }
+        }
+
+        if (!foundCaregiverDoc) {
+             return { message: 'Caretaker name not found. Please check the spelling and try again.' };
+        }
+        
+        const caregiverId = foundCaregiverDoc.id;
+
+        // Step 2: Find the child with the matching name and caregiverId.
+        const childQuery = query(
             collection(db, "children"),
             where("caregiverId", "==", caregiverId)
         );
+        const childSnapshot = await getDocs(childQuery);
 
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            return { message: 'No child found with that Caretaker ID. Please check the ID and try again.' };
+        if (childSnapshot.empty) {
+            return { message: 'No children found for the specified caretaker. Please check the caretaker name.' };
         }
 
         let foundChildDoc = null;
-        for (const doc of querySnapshot.docs) {
+        for (const doc of childSnapshot.docs) {
             const childData = doc.data();
-            // Check for both 'name' and 'Name' for resilience
             const docName = childData.name || childData.Name;
             if (docName && docName.toLowerCase() === name.toLowerCase()) {
                 foundChildDoc = doc;
@@ -59,7 +82,7 @@ export async function authenticateChild(
         }
 
         if (!foundChildDoc) {
-            return { message: 'Username not found for the provided Caretaker ID. Please check the name.' };
+            return { message: 'Your name was not found for the provided Caretaker. Please check the name.' };
         }
 
         const childData = foundChildDoc.data();
