@@ -25,7 +25,7 @@ const roles = [
     name: 'Child',
     description: 'Play games and earn rewards!',
     icon: Baby,
-    href: '/child',
+    href: '/',
     cta: 'Start Playing',
   },
 ];

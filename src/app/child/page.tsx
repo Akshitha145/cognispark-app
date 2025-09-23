@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/comp
 import { exercises } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star, Volume2, Loader2 } from 'lucide-react';
+import { ArrowRight, Star, Volume2, Loader2, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
 import { useEffect, useState } from 'react';
@@ -71,7 +71,7 @@ export default function ChildPortalPage() {
 
     const handleLogout = () => {
         localStorage.removeItem('currentChild');
-        router.push('/child/login');
+        router.push('/');
     };
 
     if (isLoading || !child) {
@@ -98,7 +98,13 @@ export default function ChildPortalPage() {
                             <span className="text-sm text-muted-foreground">Loading score...</span>
                         )}
                     </div>
-                    <Button variant="outline" onClick={handleLogout}>
+                     <Button variant="outline" asChild>
+                        <Link href="/rewards">
+                            <Trophy className="mr-2 h-4 w-4" />
+                            My Rewards
+                        </Link>
+                    </Button>
+                    <Button variant="ghost" onClick={handleLogout}>
                         Switch User
                     </Button>
                 </div>

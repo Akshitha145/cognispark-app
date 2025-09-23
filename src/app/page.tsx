@@ -76,6 +76,12 @@ export default function LoginPage() {
                     <Link href="/child/login">Sign Up</Link>
                 </Button>
             </p>
+            <p className="text-muted-foreground mt-2">
+                Are you a Caregiver?{' '}
+                <Button variant="link" className="p-0 h-auto" asChild>
+                    <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
+            </p>
         </div>
       </Card>
     </div>

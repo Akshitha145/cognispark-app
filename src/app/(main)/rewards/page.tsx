@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { badges } from '@/lib/data';
 import { BadgeIcon } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { View } from 'lucide-react';
 
 export default function RewardsPage() {
     const userLevel = 5;
@@ -15,7 +18,14 @@ export default function RewardsPage() {
             <PageHeader
                 title="Rewards & Achievements"
                 description="Track your progress, level up, and collect awesome badges!"
-            />
+            >
+                <Button asChild variant="outline">
+                    <Link href="/rewards/ar">
+                        <View className="mr-2" />
+                        View in AR
+                    </Link>
+                </Button>
+            </PageHeader>
             
             <Card>
                 <CardHeader>

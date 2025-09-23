@@ -12,7 +12,6 @@ import { LayoutDashboard, Puzzle, Trophy, BarChart3, Users } from 'lucide-react'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/exercises', label: 'Exercises', icon: Puzzle },
-  { href: '/rewards', label: 'Rewards', icon: Trophy },
   { href: '/progress', label: 'Progress', icon: BarChart3 },
   { href: '/social', label: 'Social', icon: Users },
 ];
@@ -26,7 +25,7 @@ export function MainNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname === item.href}
+              isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
             >
               <item.icon />

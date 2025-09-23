@@ -29,6 +29,7 @@ export default function CallPage() {
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -52,40 +53,76 @@ export default function CallPage() {
     }, [id]);
 
     useEffect(() => {
-        const getCameraPermission = async () => {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            streamRef.current = stream;
-            setHasCameraPermission(true);
-    
-            if (localVideoRef.current) {
-                localVideoRef.current.srcObject = stream;
-            }
-          } catch (error) {
-            console.error('Error accessing camera:', error);
-            setHasCameraPermission(false);
-            toast({
-              variant: 'destructive',
-              title: 'Camera Access Denied',
-              description: 'Please enable camera permissions in your browser settings to use this app.',
-            });
-          }
-        };
-    
-        getCameraPermission();
+        const setupCall = async () => {
+            try {
+                // 1. Get user media
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                streamRef.current = stream;
+                setHasCameraPermission(true);
 
-        const connectionTimer = setTimeout(() => {
-            setIsConnecting(false);
-            setIsCallActive(true);
-        }, 3000);
+                if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = stream;
+                }
+
+                // 2. Create Peer Connection
+                const pc = new RTCPeerConnection();
+                peerConnectionRef.current = pc;
+
+                // 3. Add tracks to peer connection
+                stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+                // 4. Handle remote track
+                pc.ontrack = (event) => {
+                    if (remoteVideoRef.current) {
+                        remoteVideoRef.current.srcObject = event.streams[0];
+                    }
+                };
+
+                // 5. Simulate signaling (offer/answer exchange)
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                // --- In a real app, this offer would be sent to the other peer via a signaling server ---
+                
+                // Simulate receiving the offer and creating an answer
+                const answer = await pc.createAnswer();
+                await pc.setRemoteDescription(offer); // Remote peer sets the offer they received
+                await pc.setLocalDescription(answer); // Local peer sets its own answer
+                
+                // --- In a real app, this answer would be sent back to the original caller ---
+
+                // Simulate original caller receiving the answer
+                await pc.setRemoteDescription(answer);
+
+                 // Simulate connection
+                setTimeout(() => {
+                    setIsConnecting(false);
+                    setIsCallActive(true);
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error accessing camera or setting up WebRTC:', error);
+                setHasCameraPermission(false);
+                toast({
+                    variant: 'destructive',
+                    title: 'Call Failed',
+                    description: 'Could not access camera or establish a connection. Please check permissions.',
+                });
+                setIsConnecting(false);
+            }
+        };
+
+        setupCall();
 
         return () => {
-            clearTimeout(connectionTimer);
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
-        }
-      }, [toast]);
+            if (peerConnectionRef.current) {
+                peerConnectionRef.current.close();
+            }
+        };
+    }, [toast]);
 
     const toggleMute = () => {
         if (streamRef.current) {
@@ -112,28 +149,6 @@ export default function CallPage() {
             </div>
         )
     }
-    
-    const remoteUserView = (
-        <div className="relative w-full h-full rounded-lg overflow-hidden bg-black/80 flex items-center justify-center">
-            <Avatar className="h-32 w-32">
-                <AvatarImage src={user.profilePhoto} alt={user.name} />
-                <AvatarFallback className="text-6xl">{user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <p className="absolute bottom-4 text-white/50 text-sm">{user.name}'s video is off</p>
-        </div>
-    );
-    
-    const localUserView = (
-        <Card className="w-full h-full bg-black overflow-hidden flex items-center justify-center">
-            <video ref={localVideoRef} className={cn("w-full h-full object-cover", isVideoOff && 'hidden')} autoPlay muted playsInline />
-            {isVideoOff && (
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <VideoOff className="h-12 w-12"/>
-                    <span className="text-lg">Your video is off</span>
-                </div>
-            )}
-        </Card>
-    );
 
     return (
         <div className="flex h-[calc(100vh-8rem)] flex-col bg-secondary">
@@ -150,35 +165,42 @@ export default function CallPage() {
                 </div>
             </header>
 
-            <main className="flex-1 relative flex items-center justify-center p-4">
-                {isConnecting ? (
-                    <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                        <p className="text-muted-foreground">Connecting to {user.name}...</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="w-full h-full">
-                           {isCallActive ? remoteUserView : localUserView}
+            <main className="flex-1 relative p-4">
+                <div className="relative w-full h-full rounded-lg overflow-hidden bg-black/80 flex items-center justify-center">
+                    <video ref={remoteVideoRef} className={cn("w-full h-full object-cover", !isCallActive && "hidden")} autoPlay playsInline />
+                     {!isCallActive && !isConnecting && (
+                         <div className="text-center text-white">
+                             <h2 className="text-2xl font-bold">Call Ended</h2>
+                         </div>
+                     )}
+                     {isConnecting && (
+                         <div className="flex flex-col items-center gap-4 text-white">
+                            <Loader2 className="h-12 w-12 animate-spin" />
+                            <p>Connecting to {user.name}...</p>
                         </div>
+                     )}
+                     {isCallActive && (
+                        <Avatar className={cn("h-32 w-32 absolute transition-opacity", remoteVideoRef.current?.srcObject ? 'opacity-0' : 'opacity-100')}>
+                            <AvatarImage src={user.profilePhoto} alt={user.name} />
+                            <AvatarFallback className="text-6xl">{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                     )}
+                </div>
 
-                        <Card className={cn(
-                            "absolute bottom-6 right-6 w-48 h-36 sm:w-64 sm:h-48 bg-black overflow-hidden ring-2 ring-background/50 transition-all duration-300",
-                            !isCallActive && "opacity-0 scale-90 translate-y-10",
-                            isVideoOff && "bg-secondary flex items-center justify-center"
-                        )}>
-                            <CardContent className="p-0 h-full w-full">
-                               <video ref={isCallActive ? localVideoRef : remoteVideoRef} className={cn("w-full h-full object-cover", isVideoOff && isCallActive && 'hidden')} autoPlay muted playsInline />
-                                {isVideoOff && isCallActive && (
-                                    <div className="flex flex-col items-center gap-2 text-muted-foreground text-xs sm:text-sm">
-                                        <VideoOff />
-                                        <span>You're hidden</span>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </>
-                )}
+                <Card className={cn(
+                    "absolute bottom-6 right-6 w-48 h-36 sm:w-64 sm:h-48 bg-black overflow-hidden ring-2 ring-background/50 transition-all duration-300",
+                    isVideoOff && "bg-secondary flex items-center justify-center"
+                )}>
+                    <CardContent className="p-0 h-full w-full">
+                       <video ref={localVideoRef} className={cn("w-full h-full object-cover", isVideoOff && 'hidden')} autoPlay muted playsInline />
+                        {isVideoOff && (
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground text-xs sm:text-sm">
+                                <VideoOff />
+                                <span>You're hidden</span>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {hasCameraPermission === false && (
                     <div className="absolute inset-0 flex items-center justify-center p-4 bg-background/90 z-20">
@@ -211,5 +233,3 @@ export default function CallPage() {
         </div>
     );
 }
-
-    
