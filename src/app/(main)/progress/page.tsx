@@ -7,10 +7,11 @@ import { Activity, Star, TrendingDown, TrendingUp, Loader2 } from 'lucide-react'
 import { ProgressRadarChart } from '@/components/progress/progress-radar-chart';
 import { ExerciseScoresBarChart } from '@/components/progress/exercise-scores-bar-chart';
 import { RecentScoresTable } from '@/components/progress/recent-scores-table';
-import { getCaregiverData, getGameSessions } from '@/lib/data';
+import { getGameSessions } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import type { Child, GameSession } from '@/lib/types';
 import { exercises } from '@/lib/data';
+import { useRouter } from 'next/navigation';
 
 function calculateSkillScores(sessions: GameSession[]) {
     const skillData: { [key: string]: { totalScore: number, count: number } } = {};
@@ -38,23 +39,26 @@ export default function ProgressPage() {
     const [child, setChild] = useState<Child | null>(null);
     const [sessions, setSessions] = useState<GameSession[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
-            const caregiverData = await getCaregiverData();
-            if (caregiverData && caregiverData.children.length > 0) {
-                // For this version, we will always show progress for the first child.
-                // A future update could use a shared state for child selection.
-                const firstChild = caregiverData.children[0];
-                setChild(firstChild);
-                const gameSessions = await getGameSessions(firstChild.id, 30);
+            const storedChild = localStorage.getItem('currentChild');
+            if (storedChild) {
+                const childData: Child = JSON.parse(storedChild);
+                setChild(childData);
+                const gameSessions = await getGameSessions(childData.id, 30);
                 setSessions(gameSessions);
+            } else {
+                // If no child is logged in, redirect to the child login page
+                // This could also redirect to a role selection or main login page
+                router.push('/child/login');
             }
             setIsLoading(false);
         }
         fetchData();
-    }, []);
+    }, [router]);
 
     if (isLoading) {
         return (
@@ -68,7 +72,7 @@ export default function ProgressPage() {
     if (!child) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                <PageHeader title="No Progress Data" description="No child data found. Please ensure a child is assigned to your profile." />
+                <PageHeader title="No Progress Data" description="No child data found. Please log in as a child to view progress." />
             </div>
         )
     }

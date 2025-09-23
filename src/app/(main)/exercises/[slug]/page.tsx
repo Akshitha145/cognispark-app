@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { notFound } from 'next/navigation';
@@ -10,7 +11,7 @@ import { ArrowLeft, Mic, Loader2 } from 'lucide-react';
 import { MemoryMatchGame } from '@/components/games/memory-match-game';
 import { PatternPuzzlesGame } from '@/components/games/pattern-puzzles-game';
 import { FocusForestGame } from '@/components/games/focus-forest-game';
-import { StoryCreatorGame } from '@/components/games/story-creator-game';
+import { ColorQuestGame } from '@/components/games/color-quest-game';
 import { EmotionExplorerGame } from '@/components/games/emotion-explorer-game';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVoiceInput } from '@/hooks/use-voice-input';
@@ -88,8 +89,8 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
                 return <PatternPuzzlesGame exercise={exercise} child={child} />;
             case 'focus-forest':
                 return <FocusForestGame exercise={exercise} child={child} />;
-            case 'story-creator':
-                return <StoryCreatorGame exercise={exercise} child={child} />;
+            case 'color-quest':
+                return <ColorQuestGame exercise={exercise} child={child} />;
             case 'emotion-explorer':
                 return <EmotionExplorerGame exercise={exercise} child={child} transcript={transcript} isListening={isListening} />;
             default:

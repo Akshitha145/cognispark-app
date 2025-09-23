@@ -1,6 +1,7 @@
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore, GameSession } from '@/lib/types';
-import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
+import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket, Palette } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, query, where, limit, orderBy, Timestamp } from 'firebase/firestore';
@@ -29,11 +30,11 @@ export const exercises: Exercise[] = [
     icon: AttentionIcon,
   },
   {
-    id: 'story-creator',
-    title: 'Story Creator',
-    description: 'Build stories word by word to enhance language and creative skills.',
-    skill: 'Language',
-    icon: LanguageIcon,
+    id: 'color-quest',
+    title: 'Color Quest',
+    description: 'Find and click the target color as fast as you can to improve focus.',
+    skill: 'Attention',
+    icon: Palette,
   },
   {
     id: 'emotion-explorer',
