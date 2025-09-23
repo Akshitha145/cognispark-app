@@ -56,20 +56,26 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
+        console.log("Attempting to fetch caregiver data...");
         const caregiverQuery = query(collection(db, "caregiver"), limit(1));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
-            console.error("Error: No documents found in 'caregiver' collection.");
+            console.error("Firestore Error: No documents found in 'caregiver' collection. Please ensure the collection is named 'caregiver' (singular) and contains at least one document.");
             return null;
         }
 
         const caregiverDoc = caregiverSnapshot.docs[0];
         const caregiverData = caregiverDoc.data();
         const caregiverId = caregiverDoc.id;
+        console.log(`Found caregiver with ID: ${caregiverId}`);
 
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnapshot = await getDocs(childrenQuery);
+
+        if (childrenSnapshot.empty) {
+            console.warn(`Firestore Warning: Found caregiver '${caregiverId}', but no children were found with a matching 'caregiverId' field in the 'children' collection.`);
+        }
 
         const childrenData: Child[] = childrenSnapshot.docs.map(doc => {
             const childData = doc.data();
@@ -90,13 +96,14 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
             children: childrenData 
         };
 
+        console.log("Successfully fetched caregiver and children data:", { caregiver: assembledCaregiver, children: childrenData });
         return {
             caregiver: assembledCaregiver,
             children: childrenData
         };
 
     } catch (error) {
-        console.error("Error in getCaregiverData:", error);
+        console.error("CRITICAL ERROR in getCaregiverData:", error);
         return null;
     }
 }
@@ -113,14 +120,14 @@ export async function getDashboardData(childId: string, childName: string) {
         timeSpentTrend: "+0%", // Placeholder
         exercisesCompleted: exercisesCompleted,
         exercisesCompletedTrend: "+0", // Placeholder
-        badgesEarned: 0, // Placeholder
-        latestBadge: "N/A" // Placeholder
+        badgesEarned: 3, // Placeholder to match rewards page
+        latestBadge: "Puzzle Pro" // Placeholder
     };
 
     const progressChartData: ProgressDataPoint[] = Array.from({ length: 7 }).map((_, i) => {
         const date = subDays(new Date(), 6 - i);
         const dateString = format(date, 'EEE');
-        const sessionsOnDay = sessions.filter(s => format(s.timestamp, 'EEE') === dateString);
+        const sessionsOnDay = sessions.filter(s => format(new Date(s.timestamp), 'EEE') === dateString);
         
         const avgScore = sessionsOnDay.length > 0
             ? sessionsOnDay.reduce((sum, s) => sum + s.score, 0) / sessionsOnDay.length
@@ -137,7 +144,7 @@ export async function getDashboardData(childId: string, childName: string) {
             id: session.id || `${index}`,
             childName: childName,
             activity: `Completed ${exercise?.title || session.exerciseId}`,
-            timestamp: format(session.timestamp, 'PPp')
+            timestamp: format(new Date(session.timestamp), 'PPp')
         }
     });
 
@@ -167,10 +174,11 @@ export async function getGameSessions(childId: string, days: number): Promise<Ga
 
         return sessionsSnap.docs.map(doc => {
             const data = doc.data();
+            const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
             return { 
                 id: doc.id,
                 ...data,
-                timestamp: (data.timestamp as Timestamp).toDate(),
+                timestamp,
             } as GameSession;
         });
 
