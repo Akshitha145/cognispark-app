@@ -64,7 +64,7 @@ export default function DashboardPage() {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Welcome!" description="It looks like there are no children assigned to your profile." />
-                <p className="text-muted-foreground">Please add a 'children' collection in Firestore and add documents with a 'caregiverId' of 'caregiver1'.</p>
+                <p className="text-muted-foreground">Please add a 'children' collection in Firestore and add documents with a 'caregiverId' field that matches your caregiver's document ID.</p>
             </div>
         )
     }
