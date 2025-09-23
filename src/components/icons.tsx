@@ -50,7 +50,7 @@ export function ProblemSolvingIcon(props: SVGProps<SVGSVGElement>) {
 
 export function LanguageIcon(props: SVGProps<SVGSVGElement>) {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <svg xmlns="http://www2.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5V4" />
             <path d="M8 7h8" />
@@ -74,6 +74,30 @@ export function BadgeIcon(props: SVGProps<SVGSVGElement>) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+    )
+}
+
+export function ButterflyIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+            <path d="M14 10.5c3.5-1 6-4.5 6-6.5-4 0-5.5 2-5.5 4" />
+            <path d="M10 10.5c-3.5-1-6-4.5-6-6.5 4 0 5.5 2 5.5 4" />
+            <path d="M14 13.5c3.5 1 6 4.5 6 6.5-4 0-5.5-2-5.5-4" />
+            <path d="M10 13.5c-3.5 1-6 4.5-6 6.5 4 0 5.5-2 5.5-4" />
+            <path d="M12 4v16" />
+            <path d="M12 4c-4.5 4-4.5 12 0 16" />
+            <path d="M12 4c4.5 4 4.5 12 0 16" />
+        </svg>
+    )
+}
+
+export function BubbleIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+            <circle cx="12" cy="12" r="10" opacity="0.8" />
+            <path d="M15 11a.5.5 0 0 0-.5-.5.5.5 0 0 0-.5.5.5.5 0 0 0 .5.5.5.5 0 0 0 .5-.5z" fill="currentColor" stroke="none" opacity="0.6" />
+             <path d="M10 9a.5.5 0 0 0-.5-.5.5.5 0 0 0-.5.5.5.5 0 0 0 .5.5.5.5 0 0 0 .5-.5z" fill="currentColor" stroke="none" opacity="0.6" />
         </svg>
     )
 }

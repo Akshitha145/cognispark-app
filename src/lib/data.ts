@@ -1,7 +1,7 @@
 
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore, GameSession } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket, Palette } from 'lucide-react';
-import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
+import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon, ButterflyIcon, BubbleIcon } from '@/components/icons';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, query, where, limit, orderBy, Timestamp, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { subDays, format } from 'date-fns';
@@ -41,6 +41,20 @@ export const exercises: Exercise[] = [
     description: 'Identify emotions from facial expressions to improve social understanding.',
     skill: 'Social-Emotional',
     icon: EmotionIcon,
+  },
+  {
+    id: 'butterfly-balance',
+    title: 'Butterfly Balance',
+    description: 'Tap only the glowing butterfly to practice attention and impulse control.',
+    skill: 'Impulse Control',
+    icon: ButterflyIcon,
+  },
+  {
+    id: 'calm-bubble-pop',
+    title: 'Calm Bubble Pop',
+    description: 'Pop bubbles slowly to relax and improve fine motor skills.',
+    skill: 'Self-Regulation',
+    icon: BubbleIcon,
   },
 ];
 
@@ -185,7 +199,7 @@ export async function getAllChildren(): Promise<Child[]> {
                  id: doc.id,
                  name: data.name || data.Name || 'Child',
                  age: data.age || 0,
-                 disability: data.disability || 'N/A',
+                 disability: data.disability || 'N_A',
                  profilePhoto: data.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
             } as Child;
         });
