@@ -13,52 +13,111 @@ import {
     SelectTrigger,
     SelectValue,
   } from '@/components/ui/select';
-import { getCaregiverData, getDashboardData } from '@/lib/data';
+import { getCaregiverData, getGameSessions, exercises } from '@/lib/data';
 import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Child } from '@/lib/types';
+import type { Child, GameSession, ProgressDataPoint, RecentActivity as RecentActivityType } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { subDays, format } from 'date-fns';
 
-type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
+
 type CaregiverData = Awaited<ReturnType<typeof getCaregiverData>>;
+type OverviewStatsData = React.ComponentProps<typeof OverviewStats>['data'];
+
+
+function processSessionsForDashboard(sessions: GameSession[], childName: string) {
+    const timeSpent = sessions.reduce((acc, session) => acc + 2, 0); // Assuming 2 mins per session
+    const exercisesCompleted = sessions.length;
+
+    const overviewStats: OverviewStatsData = {
+        timeSpent: `${Math.floor(timeSpent / 60)}h ${timeSpent % 60}m`,
+        timeSpentTrend: "+0%", // Placeholder
+        exercisesCompleted: exercisesCompleted,
+        exercisesCompletedTrend: "+0", // Placeholder
+        badgesEarned: 3, // Placeholder to match rewards page
+        latestBadge: "Puzzle Pro" // Placeholder
+    };
+
+    const progressChartData: ProgressDataPoint[] = Array.from({ length: 7 }).map((_, i) => {
+        const date = subDays(new Date(), 6 - i);
+        const dateString = format(date, 'EEE');
+        const sessionsOnDay = sessions.filter(s => format(new Date(s.timestamp), 'EEE') === dateString);
+        
+        const avgScore = sessionsOnDay.length > 0
+            ? sessionsOnDay.reduce((sum, s) => sum + s.score, 0) / sessionsOnDay.length
+            : 0;
+            
+        const timeSpentOnDay = sessionsOnDay.length * 2; // Assuming 2 mins per session
+
+        return { date: dateString, 'Cognitive Score': Math.round(avgScore), 'Time Spent (min)': timeSpentOnDay };
+    });
+    
+    const recentActivities: RecentActivityType[] = sessions.slice(0, 3).map((session, index) => {
+        const exercise = exercises.find(e => e.id === session.exerciseId);
+        return {
+            id: session.id || `${index}`,
+            childName: childName,
+            activity: `Completed ${exercise?.title || session.exerciseId}`,
+            timestamp: format(new Date(session.timestamp), 'PPp')
+        }
+    });
+
+    return { overviewStats, progressChartData, recentActivities };
+}
+
 
 export default function DashboardPage() {
     const [caregiverData, setCaregiverData] = useState<CaregiverData | null>(null);
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-    const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [overviewStats, setOverviewStats] = useState<OverviewStatsData | null>(null);
+    const [progressChartData, setProgressChartData] = useState<ProgressDataPoint[] | null>(null);
+    const [recentActivities, setRecentActivities] = useState<RecentActivityType[] | null>(null);
 
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+    // Initial load for caregiver and children list
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true);
+            setIsInitialLoading(true);
             const data = await getCaregiverData();
             setCaregiverData(data);
             if (data && data.children.length > 0) {
-                const firstChild = data.children[0];
-                setSelectedChildId(firstChild.id);
-                const dashData = await getDashboardData(firstChild.id, firstChild.name);
-                setDashboardData(dashData);
+                setSelectedChildId(data.children[0].id);
             }
-            setIsLoading(false);
+            setIsInitialLoading(false);
         };
         fetchData();
     }, []);
 
-    const handleChildChange = async (childId: string) => {
-        if (childId === selectedChildId) return;
+    // Real-time listener for game sessions of the selected child
+    useEffect(() => {
+        if (!selectedChildId) return;
 
+        const child = caregiverData?.children.find(c => c.id === selectedChildId);
+        if (!child) return;
+
+        // Reset data when child changes
+        setOverviewStats(null);
+        setProgressChartData(null);
+        setRecentActivities(null);
+
+        const unsubscribe = getGameSessions(selectedChildId, 7, (sessions) => {
+            const { overviewStats, progressChartData, recentActivities } = processSessionsForDashboard(sessions, child.name);
+            setOverviewStats(overviewStats);
+            setProgressChartData(progressChartData);
+            setRecentActivities(recentActivities);
+        });
+
+        // Cleanup listener on component unmount or when child changes
+        return () => unsubscribe();
+    }, [selectedChildId, caregiverData]);
+
+
+    const handleChildChange = async (childId: string) => {
         setSelectedChildId(childId);
-        setDashboardData(null); 
-        if (caregiverData && caregiverData.children) {
-            const child = caregiverData.children.find(c => c.id === childId);
-            if (child) {
-                const dashData = await getDashboardData(childId, child.name);
-                setDashboardData(dashData);
-            }
-        }
     }
 
-    if (isLoading) {
+    if (isInitialLoading) {
         return (
              <div className="flex h-full flex-1 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -86,6 +145,7 @@ export default function DashboardPage() {
     }
 
     const selectedChild = caregiverData.children.find(c => c.id === selectedChildId);
+    const isLoadingDashboardData = !overviewStats || !progressChartData || !recentActivities;
 
     return (
         <div className="flex flex-1 flex-col gap-4">
@@ -104,7 +164,7 @@ export default function DashboardPage() {
                )}
             </PageHeader>
 
-            {!dashboardData ? (
+            {isLoadingDashboardData ? (
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
                     <div className="col-span-1 flex flex-col gap-4 lg:col-span-7">
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -124,11 +184,11 @@ export default function DashboardPage() {
             ) : (
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
                     <div className="col-span-1 flex flex-col gap-4 lg:col-span-7">
-                        <OverviewStats data={dashboardData.overviewStats} />
+                        <OverviewStats data={overviewStats} />
                     </div>
                     <div className="col-span-1 flex flex-col gap-4 lg:col-span-4">
-                        <ProgressChart data={dashboardData.progressChartData} />
-                        <RecentActivity data={dashboardData.recentActivities} />
+                        <ProgressChart data={progressChartData} />
+                        <RecentActivity data={recentActivities} />
                     </div>
                     <div className="col-span-1 flex flex-col gap-4 lg:col-span-3">
                         <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>

@@ -1,5 +1,4 @@
 
-
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore, GameSession } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket, Palette } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -112,53 +111,6 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
     }
 }
 
-
-export async function getDashboardData(childId: string, childName: string) {
-    const sessions = await getGameSessions(childId, 7);
-
-    const timeSpent = sessions.reduce((acc, session) => acc + 2, 0); // Assuming 2 mins per session
-    const exercisesCompleted = sessions.length;
-
-    const overviewStats = {
-        timeSpent: `${Math.floor(timeSpent / 60)}h ${timeSpent % 60}m`,
-        timeSpentTrend: "+0%", // Placeholder
-        exercisesCompleted: exercisesCompleted,
-        exercisesCompletedTrend: "+0", // Placeholder
-        badgesEarned: 3, // Placeholder to match rewards page
-        latestBadge: "Puzzle Pro" // Placeholder
-    };
-
-    const progressChartData: ProgressDataPoint[] = Array.from({ length: 7 }).map((_, i) => {
-        const date = subDays(new Date(), 6 - i);
-        const dateString = format(date, 'EEE');
-        const sessionsOnDay = sessions.filter(s => format(new Date(s.timestamp), 'EEE') === dateString);
-        
-        const avgScore = sessionsOnDay.length > 0
-            ? sessionsOnDay.reduce((sum, s) => sum + s.score, 0) / sessionsOnDay.length
-            : 0;
-            
-        const timeSpentOnDay = sessionsOnDay.length * 2; // Assuming 2 mins per session
-
-        return { date: dateString, 'Cognitive Score': Math.round(avgScore), 'Time Spent (min)': timeSpentOnDay };
-    });
-    
-    const recentActivities: RecentActivity[] = sessions.slice(0, 3).map((session, index) => {
-        const exercise = exercises.find(e => e.id === session.exerciseId);
-        return {
-            id: session.id || `${index}`,
-            childName: childName,
-            activity: `Completed ${exercise?.title || session.exerciseId}`,
-            timestamp: format(new Date(session.timestamp), 'PPp')
-        }
-    });
-
-    return {
-        overviewStats,
-        progressChartData,
-        recentActivities,
-    }
-}
-
 export function getGameSessions(childId: string, days: number, onUpdate: (sessions: GameSession[]) => void): Unsubscribe {
     const endDate = new Date();
     const startDate = subDays(endDate, days);
@@ -242,5 +194,3 @@ export async function getAllChildren(): Promise<Child[]> {
         return [];
     }
 }
-
-    
