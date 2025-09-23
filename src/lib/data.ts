@@ -3,6 +3,8 @@ import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, 
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
+// MOCK DATA - This will be replaced with Firestore data
+
 const alexAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-1');
 const bellaAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-2');
 const charlieAvatar = PlaceHolderImages.find(p => p.id === 'child-avatar-3');

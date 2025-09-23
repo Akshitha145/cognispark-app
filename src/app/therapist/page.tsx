@@ -91,7 +91,7 @@ export default function TherapistPortalPage() {
                                                 </Link>
                                             </Button>
                                             <Button variant="outline" size="icon" asChild>
-                                                <Link href="/social">
+                                                <Link href={`/call/${patient.id}`}>
                                                     <Video className="h-4 w-4" />
                                                     <span className="sr-only">Start Call</span>
                                                 </Link>

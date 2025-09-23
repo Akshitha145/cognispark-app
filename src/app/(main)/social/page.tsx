@@ -7,6 +7,7 @@ import { children, therapists } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Link from 'next/link';
 
 
 type User = {
@@ -65,9 +66,11 @@ function ContactList({ title, users }: { title: string; users: User[] }) {
                                 </div>
                             </div>
                         </div>
-                        <Button variant="outline" size="icon" disabled={user.status === 'Offline'}>
-                            <Video className="h-5 w-5" />
-                            <span className="sr-only">Start video call with {user.name}</span>
+                        <Button asChild variant="outline" size="icon" disabled={user.status === 'Offline'}>
+                            <Link href={`/call/${user.id}`}>
+                                <Video className="h-5 w-5" />
+                                <span className="sr-only">Start video call with {user.name}</span>
+                            </Link>
                         </Button>
                     </div>
                 ))}
