@@ -19,9 +19,10 @@ import type { Child } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
+type CaregiverData = Awaited<ReturnType<typeof getCaregiverData>>;
 
 export default function DashboardPage() {
-    const [children, setChildren] = useState<Child[]>([]);
+    const [caregiverData, setCaregiverData] = useState<CaregiverData | null>(null);
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,8 +31,8 @@ export default function DashboardPage() {
         const fetchData = async () => {
             setIsLoading(true);
             const data = await getCaregiverData();
+            setCaregiverData(data);
             if (data && data.children.length > 0) {
-                setChildren(data.children);
                 const firstChild = data.children[0];
                 setSelectedChildId(firstChild.id);
                 const dashData = await getDashboardData(firstChild.id, firstChild.name);
@@ -45,10 +46,12 @@ export default function DashboardPage() {
     const handleChildChange = async (childId: string) => {
         setSelectedChildId(childId);
         setDashboardData(null); // Show loading state
-        const child = children.find(c => c.id === childId);
-        if (child) {
-            const dashData = await getDashboardData(childId, child.name);
-            setDashboardData(dashData);
+        if (caregiverData && caregiverData.children) {
+            const child = caregiverData.children.find(c => c.id === childId);
+            if (child) {
+                const dashData = await getDashboardData(childId, child.name);
+                setDashboardData(dashData);
+            }
         }
     }
 
@@ -60,7 +63,16 @@ export default function DashboardPage() {
         )
     }
 
-    if (!selectedChildId || children.length === 0) {
+    if (!caregiverData || !caregiverData.caregiver) {
+        return (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+                <PageHeader title="Welcome!" description="No caregiver data found in the database." />
+                <p className="text-muted-foreground">Please add a 'caregivers' collection in Firestore and create at least one caregiver document.</p>
+            </div>
+        )
+    }
+    
+    if (!selectedChildId || !caregiverData.children || caregiverData.children.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Welcome!" description="It looks like there are no children assigned to your profile." />
@@ -69,7 +81,7 @@ export default function DashboardPage() {
         )
     }
 
-    const selectedChild = children.find(c => c.id === selectedChildId);
+    const selectedChild = caregiverData.children.find(c => c.id === selectedChildId);
 
     return (
         <div className="flex flex-1 flex-col gap-4">
@@ -79,7 +91,7 @@ export default function DashboardPage() {
                         <SelectValue placeholder="Select a child" />
                     </SelectTrigger>
                     <SelectContent>
-                        {children.map(child => (
+                        {caregiverData.children.map(child => (
                             <SelectItem key={child.id} value={child.id}>{child.name}</SelectItem>
                         ))}
                     </SelectContent>

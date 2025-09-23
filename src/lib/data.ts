@@ -3,6 +3,7 @@
 
 
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -68,18 +69,18 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         const caregiverSnaps = await getDocs(caregiversQuery);
 
         if (caregiverSnaps.empty) {
-            console.warn("No caregivers found in Firestore. Please add one.");
+            console.warn("No caregivers found in Firestore.");
             return null;
         }
         
         const caregiverSnap = caregiverSnaps.docs[0];
         const caregiverId = caregiverSnap.id;
-        const data = caregiverSnap.data();
+        const caregiverDocData = caregiverSnap.data();
 
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
-        const childrenSnap = await getDocs(childrenQuery);
-
-        const childrenData: Child[] = childrenSnap.docs.map(doc => {
+        const childrenSnaps = await getDocs(childrenQuery);
+        
+        let childrenData: Child[] = childrenSnaps.docs.map(doc => {
             const childData = doc.data();
             return {
                 id: doc.id,
@@ -89,12 +90,30 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
                 profilePhoto: childData.profilePhoto
             } as Child;
         });
+
+        // If no children were found with the query, fall back to fetching the first child.
+        if (childrenData.length === 0) {
+            console.warn(`No children found with caregiverId: ${caregiverId}. Fetching first child as a fallback.`);
+            const anyChildQuery = query(collection(db, "children"), limit(1));
+            const anyChildSnaps = await getDocs(anyChildQuery);
+            if (!anyChildSnaps.empty) {
+                const childDoc = anyChildSnaps.docs[0];
+                const childData = childDoc.data();
+                childrenData = [{
+                     id: childDoc.id,
+                    name: childData.name,
+                    age: childData.age,
+                    disability: childData.disability,
+                    profilePhoto: childData.profilePhoto
+                }]
+            }
+        }
         
         const caregiverData: Caregiver = {
             id: caregiverId,
-            name: data.Name || data.name,
-            email: data.Email || data.email,
-            profilePhoto: data.profilePhoto || data.profilePic || '',
+            name: caregiverDocData.Name || caregiverDocData.name,
+            email: caregiverDocData.Email || caregiverDocData.email,
+            profilePhoto: caregiverDocData.profilePhoto || caregiverDocData.profilePic || '',
             children: childrenData
         };
 
