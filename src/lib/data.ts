@@ -1,4 +1,5 @@
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -205,5 +206,3 @@ export const recentScores: RecentScore[] = [];
 export const children: Child[] = [];
 export const therapists: Therapist[] = [];
 export const recentActivities: RecentActivity[] = [];
-
-    
