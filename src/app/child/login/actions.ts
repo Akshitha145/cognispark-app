@@ -3,7 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import type { Child } from '@/lib/types';
-import { collection, addDoc, getDocs, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
@@ -30,7 +30,7 @@ export async function registerChild(
 
     if (!validatedFields.success) {
         return {
-            message: 'Invalid data provided.',
+            message: validatedFields.error.flatten().fieldErrors.name?.[0] || validatedFields.error.flatten().fieldErrors.caregiverName?.[0] || 'Invalid data provided.',
             fields: Object.fromEntries(formData.entries()) as any,
         };
     }
