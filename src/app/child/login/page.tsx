@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { registerChild, type FormState } from './actions';
@@ -25,7 +25,7 @@ export default function ChildLoginPage() {
     const { toast } = useToast();
 
     const initialState: FormState = { message: '' };
-    const [state, formAction] = useFormState(registerChild, initialState);
+    const [state, formAction] = useActionState(registerChild, initialState);
 
     useEffect(() => {
         if (state.message === 'success' && state.child) {

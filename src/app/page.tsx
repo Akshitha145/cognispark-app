@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const initialState: AuthFormState = { message: '' };
-  const [state, formAction] = useFormState(authenticateChild, initialState);
+  const [state, formAction] = useActionState(authenticateChild, initialState);
 
   useEffect(() => {
     if (state.message === 'success' && state.child) {
