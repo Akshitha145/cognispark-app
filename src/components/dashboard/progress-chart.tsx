@@ -2,9 +2,9 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { progressData } from '@/lib/data';
+import type { ProgressDataPoint } from '@/lib/types';
 
-export function ProgressChart() {
+export function ProgressChart({ data }: { data: ProgressDataPoint[]}) {
   return (
     <Card>
         <CardHeader>
@@ -13,7 +13,7 @@ export function ProgressChart() {
         </CardHeader>
         <CardContent className="h-[350px] w-full p-2">
             <ResponsiveContainer>
-                <BarChart data={progressData}>
+                <BarChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="date" tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <YAxis yAxisId="left" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />

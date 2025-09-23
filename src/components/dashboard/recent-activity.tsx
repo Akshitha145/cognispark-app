@@ -7,15 +7,15 @@ import {
     TableRow,
   } from '@/components/ui/table';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { recentActivities } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
+import type { RecentActivity as RecentActivityType } from '@/lib/types';
   
-export function RecentActivity() {
+export function RecentActivity({ data }: { data: RecentActivityType[]}) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>A log of the most recent activities across all children.</CardDescription>
+          <CardDescription>A log of the most recent activities for the selected child.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -27,7 +27,7 @@ export function RecentActivity() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentActivities.map((activity) => (
+              {data.map((activity) => (
                 <TableRow key={activity.id}>
                   <TableCell>
                     <Badge variant="secondary">{activity.childName}</Badge>

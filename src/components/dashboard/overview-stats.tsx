@@ -1,7 +1,18 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Activity, Award, Clock } from "lucide-react";
 
-export function OverviewStats() {
+type OverviewStatsProps = {
+    data: {
+        timeSpent: string;
+        timeSpentTrend: string;
+        exercisesCompleted: number;
+        exercisesCompletedTrend: string;
+        badgesEarned: number;
+        latestBadge: string;
+    }
+}
+
+export function OverviewStats({ data }: OverviewStatsProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
@@ -12,9 +23,9 @@ export function OverviewStats() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">25.5 hours</div>
+                <div className="text-2xl font-bold">{data.timeSpent}</div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from last week
+                  {data.timeSpentTrend} from last week
                 </p>
               </CardContent>
             </Card>
@@ -26,9 +37,9 @@ export function OverviewStats() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">42</div>
+                <div className="text-2xl font-bold">{data.exercisesCompleted}</div>
                 <p className="text-xs text-muted-foreground">
-                  +5 from last week
+                  {data.exercisesCompletedTrend} from last week
                 </p>
               </CardContent>
             </Card>
@@ -38,9 +49,9 @@ export function OverviewStats() {
                 <Award className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">3</div>
+                <div className="text-2xl font-bold">{data.badgesEarned}</div>
                 <p className="text-xs text-muted-foreground">
-                    New "Puzzle Pro" badge
+                    New "{data.latestBadge}" badge
                 </p>
               </CardContent>
             </Card>

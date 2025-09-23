@@ -10,9 +10,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, Settings, User } from 'lucide-react';
-import { caregiver } from '@/lib/data';
+import { getCaregiverData } from '@/lib/data';
+import { Skeleton } from './ui/skeleton';
 
-export function UserNav() {
+export async function UserNav() {
+  const data = await getCaregiverData();
+
+  if (!data) {
+    return <Skeleton className="h-9 w-9 rounded-full" />;
+  }
+  const { caregiver } = data;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
