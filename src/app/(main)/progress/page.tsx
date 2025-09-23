@@ -37,7 +37,8 @@ export default function ProgressPage() {
     if (!children || children.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                <PageHeader title="No Progress Data" description="No children are assigned to your profile." />
+                <PageHeader title="No Progress Data" description="No children are assigned to your profile, or data is still loading." />
+                 <p className="text-muted-foreground">Ensure a caregiver and a child with a matching 'caregiverId' exist in Firestore.</p>
             </div>
         )
     }

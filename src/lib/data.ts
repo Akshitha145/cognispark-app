@@ -1,5 +1,6 @@
 
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -200,9 +201,27 @@ export async function getAllChildren(): Promise<Child[]> {
 // Kept for reference or for parts of the app not yet connected to Firestore.
 
 export const progressData: ProgressDataPoint[] = [];
-export const skillScores = {};
-export const exerciseScores: { name: string, score: number }[] = [];
-export const recentScores: RecentScore[] = [];
+export const skillScores = {
+    'Memory': 88,
+    'Problem-Solving': 75,
+    'Attention': 62,
+    'Language': 80,
+    'Social-Emotional': 91,
+};
+export const exerciseScores = [
+  { name: 'Memory Match', score: 88 },
+  { name: 'Pattern Puzzles', score: 75 },
+  { name: 'Focus Forest', score: 62 },
+  { name: 'Story Creator', score: 80 },
+  { name: 'Emotion Explorer', score: 91 },
+];
+
+export const recentScores: RecentScore[] = [
+    { exercise: 'Memory Match', score: 92, date: '2024-05-20T10:00:00Z', difficulty: 'Hard' },
+    { exercise: 'Pattern Puzzles', score: 85, date: '2024-05-19T14:30:00Z', difficulty: 'Medium' },
+    { exercise: 'Focus Forest', score: 70, date: '2024-05-18T09:00:00Z', difficulty: 'Medium' },
+    { exercise: 'Story Creator', score: 95, date: '2024-05-17T11:00:00Z', difficulty: 'Easy' },
+];
 export const children: Child[] = [];
 export const therapists: Therapist[] = [];
 export const recentActivities: RecentActivity[] = [];
