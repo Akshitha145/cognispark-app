@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Child } from '@/lib/types';
+import type { Child, GameSession } from '@/lib/types';
+import { getGameSessions } from '@/lib/data';
 
 function PlayAudioButton({ text, languageCode }: { text: string, languageCode: string }) {
     const { playAudio, isPlaying } = useAudioPlayer();
@@ -39,13 +40,23 @@ function PlayAudioButton({ text, languageCode }: { text: string, languageCode: s
 
 export default function ChildPortalPage() {
     const [child, setChild] = useState<Child | null>(null);
+    const [totalPoints, setTotalPoints] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
         const storedChild = localStorage.getItem('currentChild');
         if (storedChild) {
-            setChild(JSON.parse(storedChild));
+            const childData: Child = JSON.parse(storedChild);
+            setChild(childData);
+            
+            async function fetchScore() {
+                const sessions = await getGameSessions(childData.id, 365); // Fetch all-time sessions
+                const points = sessions.reduce((acc, session) => acc + session.score, 0);
+                setTotalPoints(points);
+            }
+            fetchScore();
+
         } else {
             router.push('/child/login');
         }
@@ -75,7 +86,11 @@ export default function ChildPortalPage() {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Star className="h-6 w-6 text-yellow-500" />
-                        <span className="font-bold text-lg">1250 Points</span>
+                        {totalPoints !== null ? (
+                            <span className="font-bold text-lg">{totalPoints} Points</span>
+                        ) : (
+                            <span className="text-sm text-muted-foreground">Loading score...</span>
+                        )}
                     </div>
                     <Button variant="outline" onClick={handleLogout}>
                         Switch User
