@@ -213,5 +213,3 @@ export const recentScores: RecentScore[] = [
 export const children: Child[] = [];
 export const therapists: Therapist[] = [];
 export const recentActivities: RecentActivity[] = [];
-
-    
