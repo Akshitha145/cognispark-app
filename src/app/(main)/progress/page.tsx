@@ -1,12 +1,39 @@
+'use client';
+
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Star, TrendingDown, TrendingUp } from 'lucide-react';
+import { Activity, Star, TrendingDown, TrendingUp, Loader2 } from 'lucide-react';
 import { ProgressRadarChart } from '@/components/progress/progress-radar-chart';
 import { ExerciseScoresBarChart } from '@/components/progress/exercise-scores-bar-chart';
 import { RecentScoresTable } from '@/components/progress/recent-scores-table';
-import { children } from '@/lib/data';
+import { getCaregiverData } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import type { Child } from '@/lib/types';
 
 export default function ProgressPage() {
+    const [children, setChildren] = useState<Child[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            setIsLoading(true);
+            const data = await getCaregiverData();
+            if (data && data.children) {
+                setChildren(data.children);
+            }
+            setIsLoading(false);
+        }
+        fetchData();
+    }, []);
+
+    if (isLoading) {
+        return (
+             <div className="flex h-full flex-1 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+             </div>
+        )
+    }
+
     if (!children || children.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
