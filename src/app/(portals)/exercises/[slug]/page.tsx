@@ -13,6 +13,8 @@ import { PatternPuzzlesGame } from '@/components/games/pattern-puzzles-game';
 import { FocusForestGame } from '@/components/games/focus-forest-game';
 import { ColorQuestGame } from '@/components/games/color-quest-game';
 import { EmotionExplorerGame } from '@/components/games/emotion-explorer-game';
+import { ButterflyBalanceGame } from '@/components/games/butterfly-balance-game';
+import { CalmBubblePopGame } from '@/components/games/calm-bubble-pop-game';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { BackgroundMusic } from '@/components/games/background-music';
 import type { Child } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ExercisePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
@@ -39,8 +42,6 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
         if (storedChild) {
             setChild(JSON.parse(storedChild));
         } else {
-            // If no child is logged in, redirect to the main page or login.
-            // For now, we go back to the role selection.
             router.push('/child/auth');
         }
         setIsLoading(false);
@@ -93,6 +94,10 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
                 return <ColorQuestGame exercise={exercise} child={child} />;
             case 'emotion-explorer':
                 return <EmotionExplorerGame exercise={exercise} child={child} transcript={transcript} isListening={isListening} />;
+            case 'butterfly-balance':
+                return <ButterflyBalanceGame exercise={exercise} child={child} />;
+            case 'calm-bubble-pop':
+                return <CalmBubblePopGame exercise={exercise} child={child} />;
             default:
                 return (
                      <Card className="flex-1">
