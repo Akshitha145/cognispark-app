@@ -12,7 +12,6 @@ import { CogniSparkLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { authenticateChild, type AuthFormState } from './actions';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
 
 function SubmitButton() {
     // This is a placeholder for pending state, which is not available in 'use client' with 'useFormStatus'
@@ -28,14 +27,14 @@ export default function LoginPage() {
   const [state, formAction] = useActionState(authenticateChild, initialState);
 
   useEffect(() => {
-    if (state.message === 'success' && state.child) {
+    if (state?.message === 'success' && state.child) {
         toast({
             title: `Welcome back, ${state.child.name}!`,
             description: `Let's play some games!`,
         });
         localStorage.setItem('currentChild', JSON.stringify(state.child));
         router.push('/child');
-    } else if (state.message && state.message !== 'success') {
+    } else if (state?.message && state.message !== 'success') {
         toast({
             variant: 'destructive',
             title: 'Login Failed',
