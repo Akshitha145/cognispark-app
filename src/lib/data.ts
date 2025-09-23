@@ -58,49 +58,50 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        const caregiversCollectionRef = collection(db, "caregiver");
-        const caregiversQuery = query(caregiversCollectionRef, limit(1));
-        const caregiverDocs = await getDocs(caregiversQuery);
+        // 1. Fetch the first caregiver document
+        const caregiverQuery = query(collection(db, "caregiver"), limit(1));
+        const caregiverSnapshot = await getDocs(caregiverQuery);
 
-        if (caregiverDocs.empty) {
-            console.warn("No caregivers found in Firestore collection 'caregiver'.");
+        if (caregiverSnapshot.empty) {
+            console.error("CRITICAL: No documents found in the 'caregiver' collection.");
             return null;
         }
-        
-        const caregiverDoc = caregiverDocs.docs[0];
-        const caregiverDocData = caregiverDoc.data();
+
+        const caregiverDoc = caregiverSnapshot.docs[0];
+        const caregiverData = caregiverDoc.data();
         const caregiverId = caregiverDoc.id;
 
-        const childrenCollectionRef = collection(db, "children");
-        const childrenQuery = query(childrenCollectionRef, where("caregiverId", "==", caregiverId));
-        const childrenDocs = await getDocs(childrenQuery);
-        
-        const childrenData: Child[] = childrenDocs.docs.map(doc => {
+        // 2. Fetch children linked to this caregiver
+        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
+        const childrenSnapshot = await getDocs(childrenQuery);
+
+        const childrenData: Child[] = childrenSnapshot.docs.map(doc => {
             const childData = doc.data();
             return {
                 id: doc.id,
-                name: childData.name || childData.Name || 'Unnamed Child',
+                name: childData.Name || childData.name || 'Unnamed Child',
                 age: childData.age || 0,
                 disability: childData.disability || 'N/A',
                 profilePhoto: childData.profilePhoto || ''
-            } as Child;
+            };
         });
-
-        const caregiverData: Caregiver = {
+        
+        const assembledCaregiver: Caregiver = {
             id: caregiverId,
-            name: caregiverDocData.Name || caregiverDocData.name || 'Caregiver',
-            email: caregiverDocData.Email || caregiverDocData.email || 'no-email@example.com',
-            profilePhoto: caregiverDocData.profilePhoto || caregiverDocData.profilePic || '',
+            name: caregiverData.Name || caregiverData.name || 'Caregiver',
+            email: caregiverData.Email || caregiverData.email || 'no-email@example.com',
+            profilePhoto: caregiverData.profilePhoto || '',
             children: childrenData 
         };
 
         return {
-            caregiver: caregiverData,
+            caregiver: assembledCaregiver,
             children: childrenData
         };
 
     } catch (error) {
-        console.error("Error fetching caregiver and children data:", error);
+        console.error("FATAL ERROR in getCaregiverData:", error);
+        // If there's any error during the process, return null to prevent crashes.
         return null;
     }
 }
