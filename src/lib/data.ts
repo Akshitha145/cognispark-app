@@ -1,4 +1,5 @@
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore, GameSession } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket, Palette } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon, ButterflyIcon, BubbleIcon } from '@/components/icons';
@@ -132,8 +133,7 @@ export function getGameSessions(childId: string, days: number, onUpdate: (sessio
     const sessionsQuery = query(
         collection(db, "gameSessions"), 
         where("childId", "==", childId),
-        where("timestamp", ">=", startDate),
-        orderBy("timestamp", "desc")
+        where("timestamp", ">=", startDate)
     );
 
     const unsubscribe = onSnapshot(sessionsQuery, (snapshot) => {
@@ -154,6 +154,10 @@ export function getGameSessions(childId: string, days: number, onUpdate: (sessio
                 timestamp: timestamp,
             } as GameSession;
         });
+
+        // Sort the sessions in memory instead of in the query
+        sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        
         onUpdate(sessions);
     }, (error) => {
         console.error("Error fetching game sessions in real-time:", error);
