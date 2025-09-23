@@ -26,7 +26,7 @@ export async function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={caregiver.profilePic} alt={caregiver.name} data-ai-hint={caregiver.avatarHint} />
+            <AvatarImage src={caregiver.profilePhoto} alt={caregiver.name} data-ai-hint={caregiver.avatarHint} />
             <AvatarFallback>{caregiver.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
         </Button>

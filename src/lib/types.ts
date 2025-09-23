@@ -3,7 +3,7 @@ export type Child = {
   name: string;
   age: number;
   disability: string;
-  profilePic: string;
+  profilePhoto: string;
   avatarHint?: string;
 };
 
@@ -11,7 +11,7 @@ export type Caregiver = {
   id: string;
   name: string;
   email: string;
-  profilePic: string;
+  profilePhoto: string;
   avatarHint?: string;
   children: Child[];
 }
@@ -20,7 +20,7 @@ export type Therapist = {
     id: string;
     name: string;
     specialization: string;
-    profilePic: string;
+    profilePhoto: string;
     avatarHint?: string;
 }
 

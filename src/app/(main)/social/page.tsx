@@ -13,7 +13,7 @@ import Link from 'next/link';
 type User = {
     id: string;
     name: string;
-    profilePic: string;
+    profilePhoto: string;
     avatarHint?: string;
     status: 'Online' | 'Offline';
     type: 'Peer' | 'Therapist';
@@ -55,7 +55,7 @@ function ContactList({ title, users }: { title: string; users: User[] }) {
                     <div key={user.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                         <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12 border-2 border-background ring-2 ring-transparent data-[status=online]:ring-green-500">
-                                <AvatarImage src={user.profilePic} alt={user.name} data-ai-hint={user.avatarHint} />
+                                <AvatarImage src={user.profilePhoto} alt={user.name} data-ai-hint={user.avatarHint} />
                                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>

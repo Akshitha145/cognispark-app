@@ -22,14 +22,14 @@ export default function TherapistPortalPage() {
       id: 'therapist1',
       name: 'Dr. Evelyn Reed',
       specialization: 'Cognitive Behavioral Therapy',
-      profilePic: 'https://picsum.photos/seed/5/150/150',
+      profilePhoto: 'https://picsum.photos/seed/5/150/150',
       avatarHint: 'therapist portrait',
   };
   
   // For demonstration, let's assign all children to this therapist
   const patients: Child[] = [
-    { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePic: 'https://picsum.photos/seed/1/150/150', avatarHint: 'child portrait'},
-    { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePic: 'https://picsum.photos/seed/2/150/150', avatarHint: 'child portrait'},
+    { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: 'https://picsum.photos/seed/1/150/150', avatarHint: 'child portrait'},
+    { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePhoto: 'https://picsum.photos/seed/2/150/150', avatarHint: 'child portrait'},
   ];
 
   if (!therapist) {
@@ -41,7 +41,7 @@ export default function TherapistPortalPage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
             <div className="flex items-center gap-4">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={therapist.profilePic} alt={therapist.name} data-ai-hint={therapist.avatarHint} />
+                    <AvatarImage src={therapist.profilePhoto} alt={therapist.name} data-ai-hint={therapist.avatarHint} />
                     <AvatarFallback>{therapist.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -84,7 +84,7 @@ export default function TherapistPortalPage() {
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10">
-                                                <AvatarImage src={patient.profilePic} alt={patient.name} data-ai-hint={patient.avatarHint} />
+                                                <AvatarImage src={patient.profilePhoto} alt={patient.name} data-ai-hint={patient.avatarHint} />
                                                 <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{patient.name}</span>
