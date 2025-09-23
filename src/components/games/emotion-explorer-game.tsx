@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Exercise } from '@/lib/types';
+import type { Exercise, Child } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 
@@ -27,10 +28,12 @@ const emotions = [
 
 export function EmotionExplorerGame({ 
     exercise,
+    child,
     transcript,
     isListening
 }: { 
     exercise: Exercise,
+    child: Child,
     transcript?: string;
     isListening?: boolean;
 }) {
@@ -90,8 +93,7 @@ export function EmotionExplorerGame({
      useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
-                // TODO: Get the real childId
-                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
+                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
                 } else {
@@ -100,7 +102,7 @@ export function EmotionExplorerGame({
             }
         }
         handleCompletion();
-    }, [isComplete, exercise.id, performance, toast]);
+    }, [isComplete, exercise.id, performance, toast, child.id]);
 
 
     const handleRestart = () => {

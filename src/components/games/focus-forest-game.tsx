@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, RotateCcw } from 'lucide-react';
-import type { Exercise } from '@/lib/types';
+import type { Exercise, Child } from '@/lib/types';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,7 +31,7 @@ function generateLevel(): GameItem[] {
     return items;
 }
 
-export function FocusForestGame({ exercise }: { exercise: Exercise }) {
+export function FocusForestGame({ exercise, child }: { exercise: Exercise, child: Child }) {
     const [levelItems, setLevelItems] = useState<GameItem[]>([]);
     const [isComplete, setIsComplete] = useState(false);
     const [startTime, setStartTime] = useState<number>(0);
@@ -57,8 +58,7 @@ export function FocusForestGame({ exercise }: { exercise: Exercise }) {
     useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
-                // TODO: Get the real childId
-                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty: 'Medium' });
+                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Medium' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
                 } else {
@@ -67,7 +67,7 @@ export function FocusForestGame({ exercise }: { exercise: Exercise }) {
             }
         }
         handleCompletion();
-    }, [isComplete, exercise.id, performance, toast]);
+    }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleRestart = () => {
         setLevelItems(generateLevel());

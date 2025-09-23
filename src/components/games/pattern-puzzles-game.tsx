@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, RotateCcw, XCircle, Lightbulb, Square, Triangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Exercise } from '@/lib/types';
+import type { Exercise, Child } from '@/lib/types';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +17,7 @@ const puzzles = [
     { target: Square, options: [Triangle, Square, Lightbulb], correct: 1 },
 ];
 
-export function PatternPuzzlesGame({ exercise }: { exercise: Exercise }) {
+export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, child: Child }) {
     const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -48,8 +49,7 @@ export function PatternPuzzlesGame({ exercise }: { exercise: Exercise }) {
      useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
-                // TODO: Get the real childId
-                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
+                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
                 } else {
@@ -58,7 +58,7 @@ export function PatternPuzzlesGame({ exercise }: { exercise: Exercise }) {
             }
         }
         handleCompletion();
-    }, [isComplete, exercise.id, performance, toast]);
+    }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleRestart = () => {
         setCurrentPuzzleIndex(0);

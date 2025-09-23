@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { BrainCircuit, Puzzle, CheckCircle, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Exercise } from '@/lib/types';
+import type { Exercise, Child } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
@@ -55,7 +56,7 @@ function MemoryCardComponent({ card, onCardClick }: { card: MemoryCard, onCardCl
     );
 }
 
-export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
+export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child: Child }) {
     const [cards, setCards] = useState<MemoryCard[]>([]);
     const [flippedCards, setFlippedCards] = useState<number[]>([]);
     const [attempts, setAttempts] = useState(0);
@@ -108,8 +109,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
                 if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
                 setIsComplete(true);
 
-                // TODO: Get the real childId
-                const result = await saveGameSession({ childId: 'child1', exerciseId: exercise.id, score: performance, difficulty });
+                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
                 } else {
@@ -118,7 +118,7 @@ export function MemoryMatchGame({ exercise }: { exercise: Exercise }) {
             }
         }
         handleCompletion();
-    }, [cards, playAudio, isPlaying, isMounted, exercise.id, performance, difficulty, toast]);
+    }, [cards, playAudio, isPlaying, isMounted, exercise.id, performance, difficulty, toast, child.id]);
     
 
     const handleCardClick = (id: number) => {

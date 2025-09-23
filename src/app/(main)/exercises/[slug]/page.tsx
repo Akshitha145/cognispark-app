@@ -1,11 +1,12 @@
+
 'use client';
 
 import { notFound } from 'next/navigation';
-import { exercises } from '@/lib/data';
+import { exercises, getCaregiverData } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Mic } from 'lucide-react';
+import { ArrowLeft, Mic, Loader2 } from 'lucide-react';
 import { MemoryMatchGame } from '@/components/games/memory-match-game';
 import { PatternPuzzlesGame } from '@/components/games/pattern-puzzles-game';
 import { FocusForestGame } from '@/components/games/focus-forest-game';
@@ -14,18 +15,36 @@ import { EmotionExplorerGame } from '@/components/games/emotion-explorer-game';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, use } from 'react';
+import { useEffect, useState, use } from 'react';
 import { cn } from '@/lib/utils';
 import { BackgroundMusic } from '@/components/games/background-music';
+import type { Child } from '@/lib/types';
 
 export default function ExercisePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
     const { toast } = useToast();
+    const [child, setChild] = useState<Child | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
     const { transcript, isListening, startListening, stopListening, isSupported } = useVoiceInput({
         onSpeechEnd: () => {
             stopListening();
         }
     });
+
+    useEffect(() => {
+        async function fetchChild() {
+            setIsLoading(true);
+            const caregiverData = await getCaregiverData();
+            if (caregiverData && caregiverData.children.length > 0) {
+                // For now, let's assume the first child is the one playing.
+                // In a real app, you'd have a child selection mechanism.
+                setChild(caregiverData.children[0]);
+            }
+            setIsLoading(false);
+        }
+        fetchChild();
+    }, []);
 
     const exercise = exercises.find((e) => e.id === slug);
 
@@ -42,18 +61,38 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
         notFound();
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex h-full flex-1 items-center justify-center">
+               <Loader2 className="h-8 w-8 animate-spin" />
+               <p className="ml-2 text-muted-foreground">Loading game...</p>
+            </div>
+       )
+    }
+
+    if (!child) {
+        return (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+                <PageHeader title="Error" description="Could not identify the player." />
+                <p className="text-muted-foreground">Please ensure a child is assigned to the primary caregiver's profile.</p>
+                <Button asChild><Link href="/dashboard">Return to Dashboard</Link></Button>
+            </div>
+        )
+    }
+
+
     const renderGameForExercise = () => {
         switch(exercise.id) {
             case 'memory-match':
-                return <MemoryMatchGame exercise={exercise} />;
+                return <MemoryMatchGame exercise={exercise} child={child} />;
             case 'pattern-puzzles':
-                return <PatternPuzzlesGame exercise={exercise} />;
+                return <PatternPuzzlesGame exercise={exercise} child={child} />;
             case 'focus-forest':
-                return <FocusForestGame exercise={exercise} />;
+                return <FocusForestGame exercise={exercise} child={child} />;
             case 'story-creator':
-                return <StoryCreatorGame exercise={exercise} />;
+                return <StoryCreatorGame exercise={exercise} child={child} />;
             case 'emotion-explorer':
-                return <EmotionExplorerGame exercise={exercise} transcript={transcript} isListening={isListening} />;
+                return <EmotionExplorerGame exercise={exercise} child={child} transcript={transcript} isListening={isListening} />;
             default:
                 return (
                      <Card className="flex-1">

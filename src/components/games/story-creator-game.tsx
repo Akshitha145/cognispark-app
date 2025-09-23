@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, RotateCcw, Wand } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Exercise } from '@/lib/types';
+import type { Exercise, Child } from '@/lib/types';
 
 const storyParts = [
     { type: 'Character', words: ['The cat', 'The hero', 'The alien'] },
@@ -13,7 +14,7 @@ const storyParts = [
     { type: 'Object', words: ['the moon', 'a rainbow', 'a giant cookie'] },
 ];
 
-export function StoryCreatorGame({ exercise }: { exercise: Exercise }) {
+export function StoryCreatorGame({ exercise, child }: { exercise: Exercise, child: Child }) {
     const [currentPartIndex, setCurrentPartIndex] = useState(0);
     const [story, setStory] = useState<string[]>([]);
 
@@ -31,6 +32,9 @@ export function StoryCreatorGame({ exercise }: { exercise: Exercise }) {
     };
     
     const isComplete = story.length === storyParts.length;
+
+    // Note: This game is creative and doesn't have a quantifiable score.
+    // We could add a save function, but it wouldn't contribute to progress charts.
 
     return (
         <Card>
