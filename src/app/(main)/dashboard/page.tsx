@@ -44,8 +44,10 @@ export default function DashboardPage() {
     }, []);
 
     const handleChildChange = async (childId: string) => {
+        if (childId === selectedChildId) return;
+
         setSelectedChildId(childId);
-        setDashboardData(null); // Show loading state
+        setDashboardData(null); 
         if (caregiverData && caregiverData.children) {
             const child = caregiverData.children.find(c => c.id === childId);
             if (child) {
@@ -86,7 +88,8 @@ export default function DashboardPage() {
     return (
         <div className="flex flex-1 flex-col gap-4">
             <PageHeader title="Caregiver Dashboard" description="Welcome back! Here's an overview of your child's progress.">
-                <Select value={selectedChildId} onValueChange={handleChildChange}>
+               {caregiverData.children.length > 1 && selectedChildId && (
+                 <Select value={selectedChildId} onValueChange={handleChildChange}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select a child" />
                     </SelectTrigger>
@@ -96,6 +99,7 @@ export default function DashboardPage() {
                         ))}
                     </SelectContent>
                 </Select>
+               )}
             </PageHeader>
 
             {!dashboardData ? (

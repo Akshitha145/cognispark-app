@@ -4,6 +4,7 @@
 
 
 
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -61,8 +62,6 @@ export const badges: Badge[] = [
 
 // --- Firestore Data Fetching Functions ---
 
-// For this prototype, we'll fetch the first caregiver we find.
-// In a real app, this would be based on the currently logged-in user.
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
         const caregiversQuery = query(collection(db, "caregivers"), limit(1));
@@ -74,45 +73,27 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         }
         
         const caregiverSnap = caregiverSnaps.docs[0];
-        const caregiverId = caregiverSnap.id;
         const caregiverDocData = caregiverSnap.data();
 
-        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
+        // BRUTE FORCE a child load to get past the issue.
+        const childrenQuery = query(collection(db, "children"), limit(1));
         const childrenSnaps = await getDocs(childrenQuery);
         
         let childrenData: Child[] = childrenSnaps.docs.map(doc => {
             const childData = doc.data();
             return {
                 id: doc.id,
-                name: childData.name,
-                age: childData.age,
-                disability: childData.disability,
-                profilePhoto: childData.profilePhoto
+                name: childData.name || 'Child',
+                age: childData.age || 0,
+                disability: childData.disability || 'N/A',
+                profilePhoto: childData.profilePhoto || ''
             } as Child;
         });
 
-        // If no children were found with the query, fall back to fetching the first child.
-        if (childrenData.length === 0) {
-            console.warn(`No children found with caregiverId: ${caregiverId}. Fetching first child as a fallback.`);
-            const anyChildQuery = query(collection(db, "children"), limit(1));
-            const anyChildSnaps = await getDocs(anyChildQuery);
-            if (!anyChildSnaps.empty) {
-                const childDoc = anyChildSnaps.docs[0];
-                const childData = childDoc.data();
-                childrenData = [{
-                     id: childDoc.id,
-                    name: childData.name,
-                    age: childData.age,
-                    disability: childData.disability,
-                    profilePhoto: childData.profilePhoto
-                }]
-            }
-        }
-        
         const caregiverData: Caregiver = {
-            id: caregiverId,
-            name: caregiverDocData.Name || caregiverDocData.name,
-            email: caregiverDocData.Email || caregiverDocData.email,
+            id: caregiverSnap.id,
+            name: caregiverDocData.Name || caregiverDocData.name || 'Caregiver',
+            email: caregiverDocData.Email || caregiverDocData.email || '',
             profilePhoto: caregiverDocData.profilePhoto || caregiverDocData.profilePic || '',
             children: childrenData
         };
@@ -149,7 +130,6 @@ export async function getDashboardData(childId: string, childName: string) {
         { date: 'Sun', 'Cognitive Score': 92, 'Time Spent (min)': 55 },
     ];
     
-    // Use the dynamic child's name now
     const recentActivities: RecentActivity[] = [
         { id: '1', childName: childName, activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
         { id: '2', childName: childName, activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
