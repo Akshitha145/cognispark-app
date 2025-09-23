@@ -3,7 +3,7 @@ import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, 
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { db } from './firebase';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
 
 export const exercises: Exercise[] = [
   {
@@ -55,22 +55,23 @@ export const badges: Badge[] = [
 
 // --- Firestore Data Fetching Functions ---
 
-// For now, we will fetch a hardcoded caregiver. Later, this will be the logged-in user.
-const CAREGIVER_ID = "caregiver1"; 
-
+// For this prototype, we'll fetch the first caregiver we find.
+// In a real app, this would be based on the currently logged-in user.
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        const caregiverDocRef = doc(db, "caregivers", CAREGIVER_ID);
-        const caregiverSnap = await getDoc(caregiverDocRef);
+        const caregiversQuery = query(collection(db, "caregivers"), limit(1));
+        const caregiverSnaps = await getDocs(caregiversQuery);
 
-        if (!caregiverSnap.exists()) {
-            console.warn("Caregiver document not found in Firestore. Please add it.");
+        if (caregiverSnaps.empty) {
+            console.warn("No caregivers found in Firestore. Please add one.");
             return null;
         }
+        
+        const caregiverSnap = caregiverSnaps.docs[0];
+        const caregiverId = caregiverSnap.id;
+        const caregiverData = caregiverSnap.data() as Omit<Caregiver, 'id'>;
 
-        const caregiverData = caregiverSnap.data() as Omit<Caregiver, 'id' | 'children'>;
-
-        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", CAREGIVER_ID));
+        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnap = await getDocs(childrenQuery);
 
         const childrenData: Child[] = childrenSnap.docs.map(doc => ({
@@ -80,7 +81,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         
         return {
             caregiver: {
-                id: caregiverSnap.id,
+                id: caregiverId,
                 ...caregiverData,
                 children: childrenData,
             },
@@ -94,7 +95,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
 }
 
 
-export async function getDashboardData(childId: string) {
+export async function getDashboardData(childId: string, childName: string) {
     const overviewStats = {
         timeSpent: "3h 15m",
         timeSpentTrend: "+20%",
@@ -114,11 +115,11 @@ export async function getDashboardData(childId: string) {
         { date: 'Sun', 'Cognitive Score': 92, 'Time Spent (min)': 55 },
     ];
     
-    // Using the real child's name now
+    // Use the dynamic child's name now
     const recentActivities: RecentActivity[] = [
-        { id: '1', childName: 'Selected Child', activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
-        { id: '2', childName: 'Selected Child', activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
-        { id: '3', childName: 'Selected Child', activity: 'Started Focus Forest', timestamp: '2 days ago' },
+        { id: '1', childName: childName, activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
+        { id: '2', childName: childName, activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
+        { id: '3', childName: childName, activity: 'Started Focus Forest', timestamp: '2 days ago' },
     ];
 
     return {
@@ -128,17 +129,48 @@ export async function getDashboardData(childId: string) {
     }
 }
 
+export async function getAllTherapists(): Promise<Therapist[]> {
+    try {
+        const therapistsSnap = await getDocs(collection(db, "therapists"));
+        if (therapistsSnap.empty) {
+            console.log("No therapists found, returning placeholder data.");
+            return [
+                { id: 'therapist1', name: 'Dr. Evelyn Reed', specialization: 'Cognitive Behavioral Therapy', profilePhoto: 'https://picsum.photos/seed/5/150/150' },
+                { id: 'therapist2', name: 'Dr. Samuel Chen', specialization: 'Pediatric Psychology', profilePhoto: 'https://picsum.photos/seed/6/150/150' },
+            ];
+        }
+        return therapistsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Therapist));
+    } catch (error) {
+        console.error("Error fetching therapists:", error);
+        return [];
+    }
+}
+
+export async function getAllChildren(): Promise<Child[]> {
+    try {
+        const childrenSnap = await getDocs(collection(db, "children"));
+        if (childrenSnap.empty) {
+            console.log("No children found, returning placeholder data.");
+            return [
+                { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: 'https://picsum.photos/seed/1/150/150' },
+                { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePhoto: 'https://picsum.photos/seed/2/150/150' },
+            ];
+        }
+        return childrenSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Child));
+    } catch (error) {
+        console.error("Error fetching children:", error);
+        return [];
+    }
+}
+
 
 // --- Static Data ---
 // Kept for reference or for parts of the app not yet connected to Firestore.
 
-export const therapists: Therapist[] = [];
-
-export const allChildren: Child[] = [];
-export const caregiver: Caregiver | null = null;
-export const children: Child[] = [];
 export const progressData: ProgressDataPoint[] = [];
-export const recentActivities: RecentActivity[] = [];
 export const skillScores = {};
 export const exerciseScores: { name: string, score: number }[] = [];
 export const recentScores: RecentScore[] = [];
+export const children: Child[] = [];
+export const therapists: Therapist[] = [];
+export const recentActivities: RecentActivity[] = [];
