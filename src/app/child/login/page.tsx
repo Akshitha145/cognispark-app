@@ -22,7 +22,7 @@ export default function ChildRegisterPage() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const initialState: FormState = { message: '' };
+    const initialState: FormState = null;
     const [state, formAction] = useActionState(registerChild, initialState);
 
     useEffect(() => {
@@ -52,7 +52,7 @@ export default function ChildRegisterPage() {
             <p className="text-muted-foreground text-lg mb-8">Create your player account.</p>
 
             <Card className="w-full max-w-sm">
-                <form action={formAction} >
+                <form action={formAction}>
                     <CardHeader>
                         <CardTitle>Sign Up</CardTitle>
                         <CardDescription>Enter your name and your caregiver's name to create an account.</CardDescription>
@@ -60,25 +60,25 @@ export default function ChildRegisterPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Your Name</Label>
-                            <Input id="name" name="name" type="text" placeholder="e.g. Alex" required />
+                            <Input id="name" name="name" type="text" placeholder="e.g. Alex" defaultValue={state?.fields?.name} required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="caregiverName">Caretaker Name</Label>
-                            <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" required />
+                            <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" defaultValue={state?.fields?.caregiverName} required />
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
                         <SubmitButton />
+                         <div className="text-center text-sm">
+                            <p className="text-muted-foreground">
+                                Already have an account?{' '}
+                                <Button variant="link" className="p-0 h-auto" asChild>
+                                    <Link href="/">Log In</Link>
+                                </Button>
+                            </p>
+                        </div>
                     </CardFooter>
                  </form>
-                 <div className="p-6 pt-0 text-center text-sm">
-                     <p className="text-muted-foreground">
-                        Already have an account?{' '}
-                        <Button variant="link" className="p-0 h-auto" asChild>
-                            <Link href="/">Log In</Link>
-                        </Button>
-                    </p>
-                </div>
             </Card>
         </div>
     );
