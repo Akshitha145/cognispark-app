@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -61,6 +62,7 @@ export default function DashboardPage() {
         return (
              <div className="flex h-full flex-1 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
+                <p className="ml-2 text-muted-foreground">Loading data...</p>
              </div>
         )
     }
@@ -69,7 +71,7 @@ export default function DashboardPage() {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Welcome!" description="No caregiver data found in the database." />
-                <p className="text-muted-foreground">Please add a 'caregivers' collection in Firestore and create at least one caregiver document.</p>
+                <p className="text-muted-foreground">Please add a 'caregiver' collection in Firestore and create at least one caregiver document.</p>
             </div>
         )
     }
