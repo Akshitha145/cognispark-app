@@ -59,8 +59,8 @@ export default function ChildPortalPage() {
         if (childData) {
             // Set up real-time listener for game sessions
             const unsubscribe = getGameSessions(childData.id, 365, (sessions) => {
-                const points = sessions.reduce((acc, session) => acc + session.score, 0);
-                setTotalPoints(points);
+                const points = sessions.reduce((acc, session) => acc + (session.score / 10), 0);
+                setTotalPoints(Math.round(points));
             });
     
             // Cleanup listener on component unmount

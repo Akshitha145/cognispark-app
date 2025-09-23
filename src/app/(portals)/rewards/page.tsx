@@ -1,17 +1,69 @@
+
+'use client';
+
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { badges } from '@/lib/data';
+import { badges, getGameSessions } from '@/lib/data';
 import { BadgeIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { View } from 'lucide-react';
+import { View, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import type { Child } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 export default function RewardsPage() {
-    const userLevel = 5;
-    const userPoints = 1250;
-    const pointsToNextLevel = 2000;
-    const progressPercentage = (userPoints / pointsToNextLevel) * 100;
+    const [child, setChild] = useState<Child | null>(null);
+    const [totalPoints, setTotalPoints] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+
+     useEffect(() => {
+        const storedChild = localStorage.getItem('currentChild');
+        let childData: Child | null = null;
+        if (storedChild) {
+            childData = JSON.parse(storedChild);
+            setChild(childData);
+        } else {
+            router.push('/child/auth');
+            return;
+        }
+        setIsLoading(false);
+
+        if (childData) {
+            // Set up real-time listener for game sessions
+            const unsubscribe = getGameSessions(childData.id, 365, (sessions) => {
+                const points = sessions.reduce((acc, session) => acc + (session.score / 10), 0);
+                setTotalPoints(Math.round(points));
+            });
+    
+            // Cleanup listener on component unmount
+            return () => unsubscribe();
+        }
+    }, [router]);
+
+    if (isLoading || totalPoints === null) {
+        return (
+             <div className="flex h-full flex-1 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <p className="ml-2 text-muted-foreground">Loading rewards...</p>
+             </div>
+        )
+    }
+
+    if (!child) {
+        return (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+                <PageHeader title="No Rewards Data" description="Please log in as a child to view your rewards." />
+            </div>
+        )
+    }
+    
+    const pointsPerLevel = 100;
+    const userLevel = Math.floor(totalPoints / pointsPerLevel) + 1;
+    const pointsInCurrentLevel = totalPoints % pointsPerLevel;
+    const progressPercentage = (pointsInCurrentLevel / pointsPerLevel) * 100;
   
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -34,11 +86,11 @@ export default function RewardsPage() {
                 <CardContent className="space-y-4">
                     <div className="flex justify-between items-baseline">
                         <h3 className="text-xl font-semibold">Level {userLevel}</h3>
-                        <p className="text-sm text-muted-foreground">{userPoints} / {pointsToNextLevel} Points</p>
+                        <p className="text-sm text-muted-foreground">{totalPoints} Total Points</p>
                     </div>
                     <Progress value={progressPercentage} />
                     <p className="text-center text-sm text-muted-foreground">
-                        {pointsToNextLevel - userPoints} points to the next level!
+                        {pointsPerLevel - pointsInCurrentLevel} points to the next level!
                     </p>
                 </CardContent>
             </Card>
