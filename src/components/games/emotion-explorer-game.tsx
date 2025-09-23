@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, RotateCcw, Lightbulb } from 'lucide-react';
+import { CheckCircle, RotateCcw, Lightbulb, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Exercise, Child } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,8 @@ const emotions = [
     { emoji: '😨', name: 'Scared', copingStrategy: 'Find a safe person like a parent or teacher and tell them you\'re scared. A big hug can help!' },
     { emoji: '🥳', name: 'Excited', copingStrategy: 'It\'s great to be excited! You can jump up and down or share your excitement with a friend.' },
     { emoji: '😮', name: 'Surprised', copingStrategy: 'Surprises can be fun or startling! Take a moment to understand what happened.' },
+    { emoji: '😴', name: 'Tired', copingStrategy: 'Your body is telling you it needs rest. Try yawning and stretching, then find a cozy spot to relax.' },
+    { emoji: '😳', name: 'Shy', copingStrategy: 'It\'s okay to feel shy. You can start with a small wave or smile, and join in when you feel ready.' },
 ];
 
 function generatePuzzles() {
@@ -70,7 +72,7 @@ export function EmotionExplorerGame({
     }, [currentPuzzleIndex, puzzles.length]);
 
     const handleSelect = useCallback((emotionName: string) => {
-        if (selectedOption) return; // Prevent multiple clicks
+        if (gameState !== 'question') return;
 
         setSelectedOption(emotionName);
         const correct = emotionName === currentPuzzle.target.name;
@@ -83,12 +85,12 @@ export function EmotionExplorerGame({
         } else {
              setTimeout(() => {
                 moveToNextStep();
-            }, 1500);
+            }, 2000); // Give more time to see the correct answer
         }
-    }, [currentPuzzle, selectedOption, moveToNextStep]);
+    }, [currentPuzzle, gameState, moveToNextStep]);
 
     useEffect(() => {
-        if (transcript && !isListening && !selectedOption && gameState === 'question') {
+        if (transcript && !isListening && gameState === 'question') {
             const heardEmotion = transcript.toLowerCase().trim().replace('.', '');
             const matchingEmotion = emotions.find(e => e.name.toLowerCase() === heardEmotion);
 
@@ -106,7 +108,7 @@ export function EmotionExplorerGame({
                 })
             }
         }
-    }, [transcript, isListening, selectedOption, handleSelect, toast, gameState]);
+    }, [transcript, isListening, gameState, handleSelect, toast]);
 
      useEffect(() => {
         async function handleCompletion() {
@@ -163,21 +165,29 @@ export function EmotionExplorerGame({
                         <div className="grid grid-cols-3 gap-4">
                             {currentPuzzle.options.map((emotion) => {
                                 const isSelected = selectedOption === emotion.name;
-                                const isTheCorrectAnswer = isCorrect !== null && emotion.name === currentPuzzle.target.name;
+                                const isTarget = emotion.name === currentPuzzle.target.name;
+                                let variantClass = "bg-transparent";
+
+                                if (selectedOption !== null) {
+                                    if (isTarget) {
+                                        variantClass = "bg-green-500/20 border-green-500";
+                                    }
+                                    if (isSelected && !isCorrect) {
+                                        variantClass = "bg-destructive/20 border-destructive";
+                                    }
+                                }
 
                                 return (
                                 <Button
                                     key={emotion.name}
                                     variant="outline"
-                                    className={cn(
-                                        "h-16 text-lg px-6",
-                                        isSelected && isCorrect === false && "bg-destructive/20 border-destructive",
-                                        isTheCorrectAnswer && "bg-green-500/20 border-green-500"
-                                    )}
+                                    className={cn("h-16 text-lg px-6 relative", variantClass)}
                                     onClick={() => handleSelect(emotion.name)}
                                     disabled={selectedOption !== null}
                                 >
                                     {emotion.name}
+                                    {selectedOption !== null && isSelected && !isCorrect && <XCircle className="h-5 w-5 absolute -top-2 -right-2 text-white bg-destructive rounded-full" />}
+                                    {selectedOption !== null && isTarget && <CheckCircle className="h-5 w-5 absolute -top-2 -right-2 text-white bg-green-500 rounded-full" />}
                                 </Button>
                             )})}
                         </div>
