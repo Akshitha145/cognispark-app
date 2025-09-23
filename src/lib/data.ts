@@ -58,26 +58,28 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        const caregiversQuery = query(collection(db, "caregivers"), limit(1));
-        const caregiverSnaps = await getDocs(caregiversQuery);
+        const caregiversCollectionRef = collection(db, "caregivers");
+        const caregiversQuery = query(caregiversCollectionRef, limit(1));
+        const caregiverDocs = await getDocs(caregiversQuery);
 
-        if (caregiverSnaps.empty) {
-            console.warn("No caregivers found in Firestore.");
+        if (caregiverDocs.empty) {
+            console.warn("No caregivers found in Firestore collection 'caregivers'.");
             return null;
         }
         
-        const caregiverSnap = caregiverSnaps.docs[0];
-        const caregiverDocData = caregiverSnap.data();
-        const caregiverId = caregiverSnap.id;
+        const caregiverDoc = caregiverDocs.docs[0];
+        const caregiverDocData = caregiverDoc.data();
+        const caregiverId = caregiverDoc.id;
 
-        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
-        const childrenSnaps = await getDocs(childrenQuery);
+        const childrenCollectionRef = collection(db, "children");
+        const childrenQuery = query(childrenCollectionRef, where("caregiverId", "==", caregiverId));
+        const childrenDocs = await getDocs(childrenQuery);
         
-        const childrenData: Child[] = childrenSnaps.docs.map(doc => {
+        const childrenData: Child[] = childrenDocs.docs.map(doc => {
             const childData = doc.data();
             return {
                 id: doc.id,
-                name: childData.name || childData.Name || 'Child',
+                name: childData.name || childData.Name || 'Unnamed Child',
                 age: childData.age || 0,
                 disability: childData.disability || 'N/A',
                 profilePhoto: childData.profilePhoto || ''
@@ -87,7 +89,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         const caregiverData: Caregiver = {
             id: caregiverId,
             name: caregiverDocData.Name || caregiverDocData.name || 'Caregiver',
-            email: caregiverDocData.Email || caregiverDocData.email || '',
+            email: caregiverDocData.Email || caregiverDocData.email || 'no-email@example.com',
             profilePhoto: caregiverDocData.profilePhoto || caregiverDocData.profilePic || '',
             children: childrenData 
         };
@@ -98,7 +100,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         };
 
     } catch (error) {
-        console.error("Error fetching caregiver data:", error);
+        console.error("Error fetching caregiver and children data:", error);
         return null;
     }
 }
@@ -211,3 +213,5 @@ export const recentScores: RecentScore[] = [
 export const children: Child[] = [];
 export const therapists: Therapist[] = [];
 export const recentActivities: RecentActivity[] = [];
+
+    
