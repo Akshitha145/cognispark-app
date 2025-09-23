@@ -1,3 +1,4 @@
+
 import { getCaregiverRecommendations } from '@/ai/flows/caregiver-ai-recommendations';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { exercises } from '@/lib/data';
@@ -27,7 +28,7 @@ async function Recommendations({ child }: { child: Child }) {
     return (
          <ul className="space-y-4">
             {recommendations.recommendations.slice(0, 3).map((rec, index) => (
-                    <li key={index} className="flex items-start gap-4 p-3 bg-secondary/50 rounded-lg">
+                    <li key={`${rec.exerciseId}-${index}`} className="flex items-start gap-4 p-3 bg-secondary/50 rounded-lg">
                     <div className="flex-shrink-0">
                         {getExerciseIcon(rec.exerciseId)}
                     </div>
