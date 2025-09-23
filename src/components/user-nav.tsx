@@ -16,7 +16,7 @@ import { Skeleton } from './ui/skeleton';
 export async function UserNav() {
   const data = await getCaregiverData();
 
-  if (!data) {
+  if (!data || !data.caregiver) {
     return <Skeleton className="h-9 w-9 rounded-full" />;
   }
   const { caregiver } = data;
@@ -26,7 +26,7 @@ export async function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={caregiver.profilePhoto} alt={caregiver.name} data-ai-hint={caregiver.avatarHint} />
+            <AvatarImage src={caregiver.profilePhoto} alt={caregiver.name} />
             <AvatarFallback>{caregiver.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
         </Button>
@@ -64,3 +64,5 @@ export async function UserNav() {
     </DropdownMenu>
   );
 }
+
+    

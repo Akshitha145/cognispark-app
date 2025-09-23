@@ -4,7 +4,6 @@ export type Child = {
   age: number;
   disability: string;
   profilePhoto: string;
-  avatarHint?: string;
 };
 
 export type Caregiver = {
@@ -12,7 +11,6 @@ export type Caregiver = {
   name: string;
   email: string;
   profilePhoto: string;
-  avatarHint?: string;
   children: Child[];
 }
 
@@ -21,7 +19,6 @@ export type Therapist = {
     name: string;
     specialization: string;
     profilePhoto: string;
-    avatarHint?: string;
 }
 
 export type Exercise = {
@@ -59,3 +56,5 @@ export type RecentScore = {
     date: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
 }
+
+    

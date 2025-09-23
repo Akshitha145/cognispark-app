@@ -1,3 +1,4 @@
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -69,15 +70,28 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         
         const caregiverSnap = caregiverSnaps.docs[0];
         const caregiverId = caregiverSnap.id;
-        const caregiverData = caregiverSnap.data() as Omit<Caregiver, 'id'>;
+        const data = caregiverSnap.data();
+
+        const caregiverData: Omit<Caregiver, 'id'> = {
+            name: data.Name || data.name,
+            email: data.Email || data.email,
+            profilePhoto: data.profilePhoto || data.profilePic || '',
+            children: []
+        };
 
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnap = await getDocs(childrenQuery);
 
-        const childrenData: Child[] = childrenSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as Child));
+        const childrenData: Child[] = childrenSnap.docs.map(doc => {
+            const childData = doc.data();
+            return {
+                id: doc.id,
+                name: childData.name,
+                age: childData.age,
+                disability: childData.disability,
+                profilePhoto: childData.profilePhoto
+            } as Child;
+        });
         
         return {
             caregiver: {
@@ -139,7 +153,15 @@ export async function getAllTherapists(): Promise<Therapist[]> {
                 { id: 'therapist2', name: 'Dr. Samuel Chen', specialization: 'Pediatric Psychology', profilePhoto: 'https://picsum.photos/seed/6/150/150' },
             ];
         }
-        return therapistsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Therapist));
+        return therapistsSnap.docs.map(doc => {
+            const data = doc.data();
+            return { 
+                id: doc.id,
+                name: data.name,
+                specialization: data.specialization,
+                profilePhoto: data.profilePhoto,
+            } as Therapist;
+        });
     } catch (error) {
         console.error("Error fetching therapists:", error);
         return [];
@@ -156,7 +178,16 @@ export async function getAllChildren(): Promise<Child[]> {
                 { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePhoto: 'https://picsum.photos/seed/2/150/150' },
             ];
         }
-        return childrenSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Child));
+        return childrenSnap.docs.map(doc => {
+            const data = doc.data();
+            return {
+                 id: doc.id,
+                 name: data.name,
+                 age: data.age,
+                 disability: data.disability,
+                 profilePhoto: data.profilePhoto
+            } as Child;
+        });
     } catch (error) {
         console.error("Error fetching children:", error);
         return [];
@@ -174,3 +205,5 @@ export const recentScores: RecentScore[] = [];
 export const children: Child[] = [];
 export const therapists: Therapist[] = [];
 export const recentActivities: RecentActivity[] = [];
+
+    

@@ -1,11 +1,12 @@
+'use client';
+
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { recentActivities } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Video } from 'lucide-react';
+import { Eye, Video, Loader2 } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -15,25 +16,56 @@ import {
     TableRow,
   } from '@/components/ui/table';
 import type { Therapist, Child } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import { getAllChildren, getAllTherapists } from '@/lib/data';
 
 export default function TherapistPortalPage() {
-  // Temporary placeholder until Firestore is connected
-  const therapist: Therapist = {
-      id: 'therapist1',
-      name: 'Dr. Evelyn Reed',
-      specialization: 'Cognitive Behavioral Therapy',
-      profilePhoto: 'https://picsum.photos/seed/5/150/150',
-      avatarHint: 'therapist portrait',
-  };
-  
-  // For demonstration, let's assign all children to this therapist
-  const patients: Child[] = [
-    { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: 'https://picsum.photos/seed/1/150/150', avatarHint: 'child portrait'},
-    { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePhoto: 'https://picsum.photos/seed/2/150/150', avatarHint: 'child portrait'},
-  ];
+    const [therapist, setTherapist] = useState<Therapist | null>(null);
+    const [patients, setPatients] = useState<Child[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            setIsLoading(true);
+            const [therapists, children] = await Promise.all([
+                getAllTherapists(),
+                getAllChildren()
+            ]);
+            
+            // For this prototype, we'll just pick the first therapist.
+            if (therapists.length > 0) {
+                setTherapist(therapists[0]);
+            }
+
+            // And assign all children as their patients.
+            setPatients(children);
+            setIsLoading(false);
+        }
+        fetchData();
+    }, []);
+
+  if (isLoading) {
+    return (
+        <div className="flex h-screen flex-col">
+            <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
+                 <div className="flex items-center gap-4">
+                     <h1 className="font-headline text-xl font-bold">Therapist Portal</h1>
+                </div>
+            </header>
+            <main className="flex flex-1 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </main>
+        </div>
+    )
+  }
 
   if (!therapist) {
-    return <div>Loading therapist data...</div>
+    return (
+        <div className="flex h-screen flex-col items-center justify-center gap-4 text-center">
+             <PageHeader title="Therapist Portal" description="No therapist data found in the database." />
+             <p className="text-muted-foreground">Please add a 'therapists' collection in Firestore.</p>
+        </div>
+    )
   }
 
   return (
@@ -41,7 +73,7 @@ export default function TherapistPortalPage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
             <div className="flex items-center gap-4">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={therapist.profilePhoto} alt={therapist.name} data-ai-hint={therapist.avatarHint} />
+                    <AvatarImage src={therapist.profilePhoto} alt={therapist.name} />
                     <AvatarFallback>{therapist.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -77,14 +109,12 @@ export default function TherapistPortalPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {patients.map((patient) => {
-                                const lastActivity = recentActivities.find(a => a.childName === patient.name);
-                                return (
+                            {patients.map((patient) => (
                                 <TableRow key={patient.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10">
-                                                <AvatarImage src={patient.profilePhoto} alt={patient.name} data-ai-hint={patient.avatarHint} />
+                                                <AvatarImage src={patient.profilePhoto} alt={patient.name} />
                                                 <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{patient.name}</span>
@@ -95,7 +125,7 @@ export default function TherapistPortalPage() {
                                         <Badge variant="secondary">{patient.disability}</Badge>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
-                                        {lastActivity ? `${lastActivity.activity} (${lastActivity.timestamp})` : 'No recent activity'}
+                                        {'No recent activity'}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-2">
@@ -114,7 +144,7 @@ export default function TherapistPortalPage() {
                                         </div>
                                     </TableCell>
                                 </TableRow>
-                            )})}
+                            ))}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -123,3 +153,5 @@ export default function TherapistPortalPage() {
     </div>
   );
 }
+
+    

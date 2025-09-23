@@ -11,26 +11,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import type { Child, Therapist } from '@/lib/types';
+import { getAllChildren, getAllTherapists } from '@/lib/data';
 
-
-// A placeholder for fetching user data, which will be replaced with a Firestore call.
-const getUserById = async (id: string) => {
-    const placeholderUsers: (Partial<Child> & Partial<Therapist> & {id: string, name: string, profilePhoto: string})[] = [
-        { id: 'child1', name: 'Alex', profilePhoto: 'https://picsum.photos/seed/1/150/150', avatarHint: 'child portrait' },
-        { id: 'child2', name: 'Bella', profilePhoto: 'https://picsum.photos/seed/2/150/150', avatarHint: 'child portrait' },
-        { id: 'child3', name: 'Charlie', profilePhoto: 'https://picsum.photos/seed/3/150/150', avatarHint: 'child portrait' },
-        { id: 'therapist1', name: 'Dr. Evelyn Reed', profilePhoto: 'https://picsum.photos/seed/5/150/150', avatarHint: 'therapist portrait' },
-        { id: 'therapist2', name: 'Dr. Samuel Chen', profilePhoto: 'https://picsum.photos/seed/6/150/150', avatarHint: 'therapist portrait' },
-    ]
-    return placeholderUsers.find(u => u.id === id);
-}
 
 export default function CallPage() {
     const params = useParams();
     const { id } = params;
     const { toast } = useToast();
 
-    const [user, setUser] = useState<{name: string, profilePhoto: string, avatarHint?: string} | null>(null);
+    const [user, setUser] = useState<{name: string, profilePhoto: string} | null>(null);
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -43,13 +32,20 @@ export default function CallPage() {
 
     useEffect(() => {
         const fetchUser = async () => {
-            if (typeof id === 'string') {
-                const foundUser = await getUserById(id);
-                if (foundUser) {
-                    setUser(foundUser);
-                } else {
-                    notFound();
-                }
+            if (typeof id !== 'string') return;
+            
+            const [children, therapists] = await Promise.all([
+                getAllChildren(),
+                getAllTherapists()
+            ]);
+
+            const allUsers: (Child | Therapist)[] = [...children, ...therapists];
+            const foundUser = allUsers.find(u => u.id === id);
+
+            if (foundUser) {
+                setUser(foundUser);
+            } else {
+                notFound();
             }
         };
         fetchUser();
@@ -120,7 +116,7 @@ export default function CallPage() {
     const remoteUserView = (
         <div className="relative w-full h-full rounded-lg overflow-hidden bg-black/80 flex items-center justify-center">
             <Avatar className="h-32 w-32">
-                <AvatarImage src={user.profilePhoto} alt={user.name} data-ai-hint={user.avatarHint} />
+                <AvatarImage src={user.profilePhoto} alt={user.name} />
                 <AvatarFallback className="text-6xl">{user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <p className="absolute bottom-4 text-white/50 text-sm">{user.name}'s video is off</p>
@@ -144,7 +140,7 @@ export default function CallPage() {
             <header className="flex items-center justify-between p-4 border-b bg-background">
                 <div className="flex items-center gap-4">
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.profilePhoto} alt={user.name} data-ai-hint={user.avatarHint} />
+                        <AvatarImage src={user.profilePhoto} alt={user.name} />
                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -215,3 +211,5 @@ export default function CallPage() {
         </div>
     );
 }
+
+    
