@@ -1,16 +1,15 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { allChildren, therapists } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { Phone, Mic, MicOff, Video, VideoOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-
+import { cn } from '@/lib/utils';
 
 // A placeholder for fetching user data, which will be replaced with a Firestore call.
 const getUserById = async (id: string) => {
@@ -24,7 +23,6 @@ const getUserById = async (id: string) => {
     return placeholderUsers.find(u => u.id === id);
 }
 
-
 export default function CallPage() {
     const params = useParams();
     const { id } = params;
@@ -34,7 +32,10 @@ export default function CallPage() {
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+    const [isConnecting, setIsConnecting] = useState(true);
+
     const videoRef = useRef<HTMLVideoElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -54,6 +55,7 @@ export default function CallPage() {
         const getCameraPermission = async () => {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            streamRef.current = stream;
             setHasCameraPermission(true);
     
             if (videoRef.current) {
@@ -72,26 +74,48 @@ export default function CallPage() {
     
         getCameraPermission();
 
+        // Simulate connection time
+        const connectionTimer = setTimeout(() => {
+            setIsConnecting(false);
+        }, 3000);
+
         return () => {
-            if (videoRef.current && videoRef.current.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
-                stream.getTracks().forEach(track => track.stop());
+            clearTimeout(connectionTimer);
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
             }
         }
       }, [toast]);
 
+    const toggleMute = () => {
+        if (streamRef.current) {
+            streamRef.current.getAudioTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setIsMuted(p => !p);
+        }
+    };
+
+    const toggleVideo = () => {
+        if (streamRef.current) {
+            streamRef.current.getVideoTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setIsVideoOff(p => !p);
+        }
+    };
 
     if (!user) {
         return (
             <div className="flex h-[calc(100vh-8rem)] items-center justify-center">
-                <p>Loading...</p>
+                <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         )
     }
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] flex-col">
-            <header className="flex items-center justify-between p-4 border-b">
+        <div className="flex h-[calc(100vh-8rem)] flex-col bg-secondary">
+            <header className="flex items-center justify-between p-4 border-b bg-background">
                 <div className="flex items-center gap-4">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={user.avatar} alt={user.name} data-ai-hint={user.avatarHint} />
@@ -99,36 +123,61 @@ export default function CallPage() {
                     </Avatar>
                     <div>
                         <p className="font-semibold">Video Call with {user.name}</p>
-                        <p className="text-sm text-muted-foreground">Connecting...</p>
+                        <p className="text-sm text-muted-foreground">{isConnecting ? 'Connecting...' : 'Connected'}</p>
                     </div>
                 </div>
             </header>
-            <main className="flex-1 grid grid-cols-1 md:grid-cols-2 bg-secondary/20 relative">
-                 <div className="relative flex items-center justify-center bg-black/50">
-                    <p className="text-white">Remote user video (placeholder)</p>
-                </div>
-                <Card className="absolute bottom-4 right-4 h-48 w-64 bg-black overflow-hidden">
-                    <CardContent className="p-0 h-full flex items-center justify-center">
-                         <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+
+            <main className="flex-1 relative flex items-center justify-center p-4">
+                {isConnecting ? (
+                    <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                        <p className="text-muted-foreground">Waiting for {user.name} to join...</p>
+                    </div>
+                ) : (
+                    <div className="relative w-full h-full rounded-lg overflow-hidden bg-black/80 flex items-center justify-center">
+                        <Avatar className="h-32 w-32">
+                           <AvatarImage src={user.avatar} alt={user.name} data-ai-hint={user.avatarHint} />
+                           <AvatarFallback className="text-6xl">{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <p className="absolute bottom-4 text-white/50 text-sm">Remote user video stream (placeholder)</p>
+                    </div>
+                )}
+
+                <Card className={cn(
+                    "absolute bottom-6 right-6 w-64 h-48 bg-black overflow-hidden ring-2 ring-background/50 transition-all duration-300",
+                    isConnecting && "opacity-0 scale-90",
+                    isVideoOff && "bg-secondary flex items-center justify-center"
+                )}>
+                    <CardContent className="p-0 h-full w-full">
+                        <video ref={videoRef} className={cn("w-full h-full object-cover", isVideoOff && 'hidden')} autoPlay muted playsInline />
+                         {isVideoOff && (
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                <VideoOff />
+                                <span>Video Off</span>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
+
                 {hasCameraPermission === false && (
-                    <div className="absolute bottom-4 right-4 h-48 w-64 p-2">
-                        <Alert variant="destructive">
+                    <div className="absolute inset-0 flex items-center justify-center p-4 bg-background/90">
+                        <Alert variant="destructive" className="max-w-md">
                             <AlertTitle>Camera Access Required</AlertTitle>
                             <AlertDescription>
-                                Please allow camera access to use this feature.
+                                Please allow camera access in your browser to use the video call feature. You may need to refresh the page after granting permission.
                             </AlertDescription>
                         </Alert>
                     </div>
                 )}
             </main>
-            <footer className="flex items-center justify-center p-4 border-t gap-4">
-                <Button variant={isMuted ? 'secondary' : 'outline'} size="icon" className="h-12 w-12 rounded-full" onClick={() => setIsMuted(p => !p)}>
+
+            <footer className="flex items-center justify-center p-4 border-t bg-background gap-4">
+                <Button variant={isMuted ? 'secondary' : 'outline'} size="icon" className="h-12 w-12 rounded-full" onClick={toggleMute} disabled={hasCameraPermission === false}>
                     {isMuted ? <MicOff /> : <Mic />}
                     <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
                 </Button>
-                 <Button variant={isVideoOff ? 'secondary' : 'outline'} size="icon" className="h-12 w-12 rounded-full" onClick={() => setIsVideoOff(p => !p)}>
+                 <Button variant={isVideoOff ? 'secondary' : 'outline'} size="icon" className="h-12 w-12 rounded-full" onClick={toggleVideo} disabled={hasCameraPermission === false}>
                     {isVideoOff ? <VideoOff /> : <Video />}
                     <span className="sr-only">{isVideoOff ? 'Turn Video On' : 'Turn Video Off'}</span>
                 </Button>
@@ -141,4 +190,3 @@ export default function CallPage() {
             </footer>
         </div>
     );
-}
