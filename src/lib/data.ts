@@ -94,8 +94,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
 }
 
 
-export async function getDashboardData(childId: string, childName: string) {
-    // These are examples. We'll build these out to fetch real data from Firestore.
+export async function getDashboardData(childId: string) {
     const overviewStats = {
         timeSpent: "3h 15m",
         timeSpentTrend: "+20%",
@@ -117,9 +116,9 @@ export async function getDashboardData(childId: string, childName: string) {
     
     // Using the real child's name now
     const recentActivities: RecentActivity[] = [
-        { id: '1', childName: childName, activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
-        { id: '2', childName: childName, activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
-        { id: '3', childName: childName, activity: 'Started Focus Forest', timestamp: '2 days ago' },
+        { id: '1', childName: 'Selected Child', activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
+        { id: '2', childName: 'Selected Child', activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
+        { id: '3', childName: 'Selected Child', activity: 'Started Focus Forest', timestamp: '2 days ago' },
     ];
 
     return {

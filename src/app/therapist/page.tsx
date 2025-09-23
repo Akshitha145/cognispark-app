@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { allChildren, recentActivities } from '@/lib/data';
+import { recentActivities } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Video } from 'lucide-react';
@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
   } from '@/components/ui/table';
-import type { Therapist } from '@/lib/types';
+import type { Therapist, Child } from '@/lib/types';
 
 export default function TherapistPortalPage() {
   // Temporary placeholder until Firestore is connected
@@ -22,12 +22,15 @@ export default function TherapistPortalPage() {
       id: 'therapist1',
       name: 'Dr. Evelyn Reed',
       specialization: 'Cognitive Behavioral Therapy',
-      avatar: 'https://picsum.photos/seed/5/150/150',
+      profilePic: 'https://picsum.photos/seed/5/150/150',
       avatarHint: 'therapist portrait',
   };
   
   // For demonstration, let's assign all children to this therapist
-  const patients = allChildren;
+  const patients: Child[] = [
+    { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePic: 'https://picsum.photos/seed/1/150/150', avatarHint: 'child portrait'},
+    { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePic: 'https://picsum.photos/seed/2/150/150', avatarHint: 'child portrait'},
+  ];
 
   if (!therapist) {
     return <div>Loading therapist data...</div>
@@ -38,7 +41,7 @@ export default function TherapistPortalPage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
             <div className="flex items-center gap-4">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={therapist.avatar} alt={therapist.name} data-ai-hint={therapist.avatarHint} />
+                    <AvatarImage src={therapist.profilePic} alt={therapist.name} data-ai-hint={therapist.avatarHint} />
                     <AvatarFallback>{therapist.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -81,7 +84,7 @@ export default function TherapistPortalPage() {
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10">
-                                                <AvatarImage src={patient.avatar} alt={patient.name} data-ai-hint={patient.avatarHint} />
+                                                <AvatarImage src={patient.profilePic} alt={patient.name} data-ai-hint={patient.avatarHint} />
                                                 <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{patient.name}</span>
