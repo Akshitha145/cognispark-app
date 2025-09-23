@@ -66,17 +66,19 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
     const [isMounted, setIsMounted] = useState(false);
     const { toast } = useToast();
 
+    const performance = useMemo(() => {
+        if (isComplete) {
+            const baseScore = Math.max(0, 100 - (attempts - icons.length) * 10);
+            return baseScore;
+        }
+        return 0;
+    }, [attempts, isComplete]);
+
+
     useEffect(() => {
         setCards(createBoard());
         setIsMounted(true);
     }, []);
-
-    const performance = useMemo(() => {
-        if (attempts === 0) return 100;
-        const baseScore = Math.max(0, 100 - (attempts - icons.length) * 20);
-        return baseScore;
-    }, [attempts]);
-
 
     useEffect(() => {
         if (!isMounted || flippedCards.length !== 2) return;
@@ -101,15 +103,22 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
                 setFlippedCards([]);
             }, 1000);
         }
-    }, [flippedCards, isMounted, playAudio, isPlaying]);
+    }, [flippedCards, cards, isMounted, playAudio, isPlaying]);
 
     useEffect(() => {
-        async function handleCompletion() {
-            if (isMounted && cards.length > 0 && cards.every(c => c.isMatched)) {
-                if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
+        if (isMounted && cards.length > 0 && cards.every(c => c.isMatched)) {
+            if (!isComplete) {
+                 if (!isPlaying) playAudio('Great Job! You completed the game!', 'en-US');
                 setIsComplete(true);
-
-                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty });
+            }
+        }
+    }, [cards, isMounted, isPlaying, playAudio, isComplete]);
+    
+    useEffect(() => {
+        async function saveScore() {
+            if (isComplete) {
+                const finalScore = Math.max(0, 100 - (attempts - icons.length) * 10);
+                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: finalScore, difficulty });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
                 } else {
@@ -117,8 +126,8 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
                 }
             }
         }
-        handleCompletion();
-    }, [cards, playAudio, isPlaying, isMounted, exercise.id, performance, difficulty, toast, child.id]);
+        saveScore();
+    }, [isComplete, attempts, child.id, exercise.id, difficulty, toast]);
     
 
     const handleCardClick = (id: number) => {

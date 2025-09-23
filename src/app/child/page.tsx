@@ -51,7 +51,7 @@ export default function ChildPortalPage() {
             childData = JSON.parse(storedChild);
             setChild(childData);
         } else {
-            router.push('/child/login');
+            router.push('/child/auth');
             return;
         }
         setIsLoading(false);
