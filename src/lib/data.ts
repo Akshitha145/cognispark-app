@@ -58,12 +58,12 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        const caregiversCollectionRef = collection(db, "caregivers");
+        const caregiversCollectionRef = collection(db, "caregiver");
         const caregiversQuery = query(caregiversCollectionRef, limit(1));
         const caregiverDocs = await getDocs(caregiversQuery);
 
         if (caregiverDocs.empty) {
-            console.warn("No caregivers found in Firestore collection 'caregivers'.");
+            console.warn("No caregivers found in Firestore collection 'caregiver'.");
             return null;
         }
         
