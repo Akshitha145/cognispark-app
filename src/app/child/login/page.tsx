@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { registerChild, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CogniSparkLogo } from '@/components/icons';
@@ -53,12 +53,11 @@ export default function ChildRegisterPage() {
 
             <Card className="w-full max-w-sm">
                 <form action={formAction} >
-                <CardHeader>
-                    <CardTitle>Sign Up</CardTitle>
-                    <CardDescription>Enter your name and your caregiver's name to create an account.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    
+                    <CardHeader>
+                        <CardTitle>Sign Up</CardTitle>
+                        <CardDescription>Enter your name and your caregiver's name to create an account.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Your Name</Label>
                             <Input id="name" name="name" type="text" placeholder="e.g. Alex" required />
@@ -67,18 +66,19 @@ export default function ChildRegisterPage() {
                             <Label htmlFor="caregiverName">Caretaker Name</Label>
                             <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" required />
                         </div>
-                       
-                </CardContent>
-                 <CardFooter className="flex flex-col gap-4">
-                    <SubmitButton />
-                     <p className="text-muted-foreground text-sm">
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-4">
+                        <SubmitButton />
+                    </CardFooter>
+                 </form>
+                 <div className="p-6 pt-0 text-center text-sm">
+                     <p className="text-muted-foreground">
                         Already have an account?{' '}
                         <Button variant="link" className="p-0 h-auto" asChild>
                             <Link href="/">Log In</Link>
                         </Button>
                     </p>
-                </CardFooter>
-                 </form>
+                </div>
             </Card>
         </div>
     );
