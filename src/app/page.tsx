@@ -68,16 +68,18 @@ export default function LoginPage() {
               <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" required />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
+          <CardFooter>
             <SubmitButton />
-             <p className="text-xs text-center text-muted-foreground">
+          </CardFooter>
+        </form>
+         <div className="p-6 pt-0 text-center text-sm">
+            <p className="text-muted-foreground">
                 Don't have an account?{' '}
                 <Button variant="link" className="p-0 h-auto" asChild>
                     <Link href="/child/login">Sign Up</Link>
                 </Button>
             </p>
-          </CardFooter>
-        </form>
+        </div>
       </Card>
     </div>
   );
