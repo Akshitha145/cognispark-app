@@ -94,7 +94,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
 }
 
 
-export async function getDashboardData(childId: string) {
+export async function getDashboardData(childId: string, childName: string) {
     // These are examples. We'll build these out to fetch real data from Firestore.
     const overviewStats = {
         timeSpent: "3h 15m",
@@ -115,10 +115,11 @@ export async function getDashboardData(childId: string) {
         { date: 'Sun', 'Cognitive Score': 92, 'Time Spent (min)': 55 },
     ];
     
+    // Using the real child's name now
     const recentActivities: RecentActivity[] = [
-        { id: '1', childName: 'Alex', activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
-        { id: '2', childName: 'Alex', activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
-        { id: '3', childName: 'Alex', activity: 'Started Focus Forest', timestamp: '2 days ago' },
+        { id: '1', childName: childName, activity: 'Completed Memory Match (Hard)', timestamp: '2 hours ago' },
+        { id: '2', childName: childName, activity: 'Earned "Puzzle Pro" Badge', timestamp: '1 day ago' },
+        { id: '3', childName: childName, activity: 'Started Focus Forest', timestamp: '2 days ago' },
     ];
 
     return {
@@ -132,22 +133,7 @@ export async function getDashboardData(childId: string) {
 // --- Static Data ---
 // Kept for reference or for parts of the app not yet connected to Firestore.
 
-export const therapists: Therapist[] = [
-    {
-        id: 'therapist1',
-        name: 'Dr. Evelyn Reed',
-        specialization: 'Cognitive Behavioral Therapy',
-        avatar: PlaceHolderImages.find(img => img.id === 'therapist-avatar-1')?.imageUrl || '',
-        avatarHint: PlaceHolderImages.find(img => img.id === 'therapist-avatar-1')?.imageHint,
-    },
-    {
-        id: 'therapist2',
-        name: 'Dr. Samuel Chen',
-        specialization: 'Child Psychology',
-        avatar: PlaceHolderImages.find(img => img.id === 'therapist-avatar-2')?.imageUrl || '',
-        avatarHint: PlaceHolderImages.find(img => img.id === 'therapist-avatar-2')?.imageHint,
-    }
-];
+export const therapists: Therapist[] = [];
 
 export const allChildren: Child[] = [];
 export const caregiver: Caregiver | null = null;

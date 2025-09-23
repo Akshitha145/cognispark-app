@@ -32,9 +32,9 @@ export default function DashboardPage() {
             const data = await getCaregiverData();
             if (data && data.children.length > 0) {
                 setChildren(data.children);
-                const firstChildId = data.children[0].id;
-                setSelectedChildId(firstChildId);
-                const dashData = await getDashboardData(firstChildId);
+                const firstChild = data.children[0];
+                setSelectedChildId(firstChild.id);
+                const dashData = await getDashboardData(firstChild.id, firstChild.name);
                 setDashboardData(dashData);
             }
             setIsLoading(false);
@@ -45,8 +45,11 @@ export default function DashboardPage() {
     const handleChildChange = async (childId: string) => {
         setSelectedChildId(childId);
         setDashboardData(null); // Show loading state
-        const dashData = await getDashboardData(childId);
-        setDashboardData(dashData);
+        const child = children.find(c => c.id === childId);
+        if (child) {
+            const dashData = await getDashboardData(childId, child.name);
+            setDashboardData(dashData);
+        }
     }
 
     if (isLoading) {
@@ -61,7 +64,7 @@ export default function DashboardPage() {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Welcome!" description="It looks like there are no children assigned to your profile." />
-                <p className="text-muted-foreground">Please check Firestore to ensure caregiver 'caregiver1' and associated children are present.</p>
+                <p className="text-muted-foreground">Please add a 'children' collection in Firestore and add documents with a 'caregiverId' of 'caregiver1'.</p>
             </div>
         )
     }
