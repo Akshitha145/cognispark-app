@@ -101,7 +101,7 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
                 setFlippedCards([]);
             }, 1000);
         }
-    }, [flippedCards, cards, playAudio, isPlaying, isMounted]);
+    }, [flippedCards, isMounted, playAudio, isPlaying]);
 
     useEffect(() => {
         async function handleCompletion() {
