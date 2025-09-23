@@ -94,10 +94,10 @@ export function ButterflyIcon(props: SVGProps<SVGSVGElement>) {
 
 export function BubbleIcon(props: SVGProps<SVGSVGElement>) {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <circle cx="12" cy="12" r="10" opacity="0.8" />
-            <path d="M15 11a.5.5 0 0 0-.5-.5.5.5 0 0 0-.5.5.5.5 0 0 0 .5.5.5.5 0 0 0 .5-.5z" fill="currentColor" stroke="none" opacity="0.6" />
-             <path d="M10 9a.5.5 0 0 0-.5-.5.5.5 0 0 0-.5.5.5.5 0 0 0 .5.5.5.5 0 0 0 .5-.5z" fill="currentColor" stroke="none" opacity="0.6" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="none" {...props}>
+            <circle cx="12" cy="12" r="10" opacity="1" />
+            <circle cx="9.5" cy="8.5" r="1.5" fill="white" opacity="0.5" />
+            <circle cx="14.5" cy="12.5" r="1" fill="white" opacity="0.5" />
         </svg>
     )
 }
