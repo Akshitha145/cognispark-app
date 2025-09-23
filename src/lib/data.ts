@@ -141,19 +141,16 @@ export async function getAllTherapists(): Promise<Therapist[]> {
     try {
         const therapistsSnap = await getDocs(collection(db, "therapists"));
         if (therapistsSnap.empty) {
-            console.log("No therapists found, returning placeholder data.");
-            return [
-                { id: 'therapist1', name: 'Dr. Evelyn Reed', specialization: 'Cognitive Behavioral Therapy', profilePhoto: 'https://picsum.photos/seed/5/150/150' },
-                { id: 'therapist2', name: 'Dr. Samuel Chen', specialization: 'Pediatric Psychology', profilePhoto: 'https://picsum.photos/seed/6/150/150' },
-            ];
+            console.warn("No therapists found in Firestore. Returning empty array.");
+            return [];
         }
         return therapistsSnap.docs.map(doc => {
             const data = doc.data();
             return { 
                 id: doc.id,
-                name: data.name,
-                specialization: data.specialization,
-                profilePhoto: data.profilePhoto,
+                name: data.name || data.Name || 'Therapist',
+                specialization: data.specialization || 'N/A',
+                profilePhoto: data.profilePhoto || '',
             } as Therapist;
         });
     } catch (error) {
@@ -166,20 +163,17 @@ export async function getAllChildren(): Promise<Child[]> {
     try {
         const childrenSnap = await getDocs(collection(db, "children"));
         if (childrenSnap.empty) {
-            console.log("No children found, returning placeholder data.");
-            return [
-                { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: 'https://picsum.photos/seed/1/150/150' },
-                { id: 'child2', name: 'Bella', age: 10, disability: 'Autism', profilePhoto: 'https://picsum.photos/seed/2/150/150' },
-            ];
+            console.warn("No children found in Firestore. Returning empty array.");
+            return [];
         }
         return childrenSnap.docs.map(doc => {
             const data = doc.data();
             return {
                  id: doc.id,
-                 name: data.name,
-                 age: data.age,
-                 disability: data.disability,
-                 profilePhoto: data.profilePhoto
+                 name: data.name || data.Name || 'Child',
+                 age: data.age || 0,
+                 disability: data.disability || 'N/A',
+                 profilePhoto: data.profilePhoto || ''
             } as Child;
         });
     } catch (error) {

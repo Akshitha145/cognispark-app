@@ -94,7 +94,7 @@ export default function SocialPage() {
       const childrenData = await getAllChildren();
       const peerUsers: User[] = childrenData.map((child, index) => ({
         ...child,
-        status: index % 2 === 0 ? 'Online' : 'Offline',
+        status: index % 2 === 0 ? 'Online' : 'Offline', // Placeholder status
         type: 'Peer',
       }));
       setPeers(peerUsers);
@@ -109,7 +109,7 @@ export default function SocialPage() {
         const therapistsData = await getAllTherapists();
         const therapistUsers: User[] = therapistsData.map((therapist, index) => ({
             ...therapist,
-            status: index % 2 === 0 ? 'Online' : 'Offline',
+            status: index % 2 === 0 ? 'Online' : 'Offline', // Placeholder status
             type: 'Therapist'
         }));
         setTherapists(therapistUsers);
@@ -140,5 +140,3 @@ export default function SocialPage() {
     </div>
   );
 }
-
-    

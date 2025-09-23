@@ -35,9 +35,11 @@ export default function TherapistPortalPage() {
             // For this prototype, we'll just pick the first therapist.
             if (therapists.length > 0) {
                 setTherapist(therapists[0]);
+            } else {
+                 console.warn("No therapist found in Firestore. The portal may not display therapist-specific data.");
             }
 
-            // And assign all children as their patients.
+            // Assign all children as their patients for this prototype.
             setPatients(children);
             setIsLoading(false);
         }
@@ -63,7 +65,7 @@ export default function TherapistPortalPage() {
     return (
         <div className="flex h-screen flex-col items-center justify-center gap-4 text-center">
              <PageHeader title="Therapist Portal" description="No therapist data found in the database." />
-             <p className="text-muted-foreground">Please add a 'therapists' collection in Firestore.</p>
+             <p className="text-muted-foreground">Please add a 'therapists' collection in Firestore and at least one document.</p>
         </div>
     )
   }
@@ -90,7 +92,7 @@ export default function TherapistPortalPage() {
         <main className="flex flex-1 flex-col gap-6 p-6">
             <PageHeader
                 title="Patient Dashboard"
-                description={`You have ${patients.length} patients assigned.`}
+                description={patients.length > 0 ? `You have ${patients.length} patients assigned.` : 'There are no patients assigned to you yet.'}
             />
             <Card>
                 <CardHeader>
@@ -109,42 +111,50 @@ export default function TherapistPortalPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {patients.map((patient) => (
-                                <TableRow key={patient.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={patient.profilePhoto} alt={patient.name} />
-                                                <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium">{patient.name}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{patient.age}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary">{patient.disability}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {'No recent activity'}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <Button variant="outline" size="icon" asChild>
-                                                <Link href="/progress">
-                                                    <Eye className="h-4 w-4" />
-                                                    <span className="sr-only">View Progress</span>
-                                                </Link>
-                                            </Button>
-                                            <Button variant="outline" size="icon" asChild>
-                                                <Link href={`/call/${patient.id}`}>
-                                                    <Video className="h-4 w-4" />
-                                                    <span className="sr-only">Start Call</span>
-                                                </Link>
-                                            </Button>
-                                        </div>
+                            {patients.length > 0 ? (
+                                patients.map((patient) => (
+                                    <TableRow key={patient.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={patient.profilePhoto} alt={patient.name} />
+                                                    <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-medium">{patient.name}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{patient.age}</TableCell>
+                                        <TableCell>
+                                            <Badge variant="secondary">{patient.disability}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {'No recent activity'}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button variant="outline" size="icon" asChild>
+                                                    <Link href="/progress">
+                                                        <Eye className="h-4 w-4" />
+                                                        <span className="sr-only">View Progress</span>
+                                                    </Link>
+                                                </Button>
+                                                <Button variant="outline" size="icon" asChild>
+                                                    <Link href={`/call/${patient.id}`}>
+                                                        <Video className="h-4 w-4" />
+                                                        <span className="sr-only">Start Call</span>
+                                                    </Link>
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-24 text-center">
+                                        No patients found. Please add children to the 'children' collection in Firestore.
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -153,5 +163,3 @@ export default function TherapistPortalPage() {
     </div>
   );
 }
-
-    
