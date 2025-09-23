@@ -26,11 +26,11 @@ type Bubble = {
 };
 
 const bubbleColors = [
-    'hsl(var(--primary) / 0.4)',
-    'hsl(var(--accent) / 0.4)',
-    '#8b5cf666', // violet-500 with 40% opacity
-    '#ec489966', // pink-500 with 40% opacity
-    '#22d3ee66', // cyan-400 with 40% opacity
+    '#3b82f6', // blue-500
+    '#8b5cf6', // violet-500
+    '#ec4899', // pink-500
+    '#22d3ee', // cyan-400
+    '#ef4444', // red-500
 ];
 const popSoundUrl = 'https://www.zapsplat.com/wp-content/uploads/2015/sound-effects-zapsplat/zapsplat_multimedia_button_click_fast_short_soft_001_63852.mp3';
 
@@ -55,7 +55,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
             x: Math.random() * 90, // % from left
             size: type === 'star' ? Math.random() * 20 + 50 : Math.random() * 40 + 30, // Stars are bigger
             duration: Math.random() * 5 + 8, // 8 to 13 seconds
-            color: type === 'star' ? '#fde04799' : bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
+            color: type === 'star' ? '#fde047' : bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
             type: type,
         };
         setBubbles(prev => [...prev, newBubble]);
@@ -139,7 +139,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
                                 >
                                     <button onClick={() => handlePop(bubble)} className="w-full h-full relative">
                                         {bubble.type === 'star' ? (
-                                            <Star className="w-full h-full text-yellow-300 fill-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.9)]" />
+                                            <Star className="w-full h-full text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(253,224,71,0.9)]" />
                                         ) : (
                                             <BubbleIcon style={{ color: bubble.color }} className="w-full h-full" />
                                         )}
