@@ -1,3 +1,4 @@
+
 import type { Child, Exercise, Badge, ProgressDataPoint, RecentActivity, Therapist, Caregiver, RecentScore, GameSession } from '@/lib/types';
 import { BrainCircuit, Puzzle, Bot, Mic, Fingerprint, HeartHandshake, BookOpen, Star, Gem, Rocket } from 'lucide-react';
 import { MemoryIcon, AttentionIcon, ProblemSolvingIcon, LanguageIcon, EmotionIcon } from '@/components/icons';
@@ -59,7 +60,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
-            console.warn("No documents found in 'caregiver' collection.");
+            console.error("Error: No documents found in 'caregiver' collection.");
             return null;
         }
 
@@ -77,7 +78,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
                 name: childData.Name || childData.name || 'Unnamed Child',
                 age: childData.age || 0,
                 disability: childData.disability || 'N/A',
-                profilePhoto: childData.profilePhoto || ''
+                profilePhoto: childData.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
             };
         });
         
@@ -85,7 +86,7 @@ export async function getCaregiverData(): Promise<{caregiver: Caregiver, childre
             id: caregiverId,
             name: caregiverData.Name || caregiverData.name || 'Caregiver',
             email: caregiverData.Email || caregiverData.email || 'no-email@example.com',
-            profilePhoto: caregiverData.profilePhoto || '',
+            profilePhoto: caregiverData.profilePhoto || `https://picsum.photos/seed/${caregiverId}/150/150`,
             children: childrenData 
         };
 
@@ -184,7 +185,6 @@ export async function getAllTherapists(): Promise<Therapist[]> {
     try {
         const therapistsSnap = await getDocs(collection(db, "therapists"));
         if (therapistsSnap.empty) {
-            console.warn("No therapists found in Firestore. Returning empty array.");
             return [];
         }
         return therapistsSnap.docs.map(doc => {
@@ -193,7 +193,7 @@ export async function getAllTherapists(): Promise<Therapist[]> {
                 id: doc.id,
                 name: data.name || data.Name || 'Therapist',
                 specialization: data.specialization || 'N/A',
-                profilePhoto: data.profilePhoto || '',
+                profilePhoto: data.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`,
             } as Therapist;
         });
     } catch (error) {
@@ -206,7 +206,6 @@ export async function getAllChildren(): Promise<Child[]> {
     try {
         const childrenSnap = await getDocs(collection(db, "children"));
         if (childrenSnap.empty) {
-            console.warn("No children found in Firestore. Returning empty array.");
             return [];
         }
         return childrenSnap.docs.map(doc => {
@@ -216,7 +215,7 @@ export async function getAllChildren(): Promise<Child[]> {
                  name: data.name || data.Name || 'Child',
                  age: data.age || 0,
                  disability: data.disability || 'N/A',
-                 profilePhoto: data.profilePhoto || ''
+                 profilePhoto: data.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
             } as Child;
         });
     } catch (error) {

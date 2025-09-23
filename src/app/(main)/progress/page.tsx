@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -43,6 +44,8 @@ export default function ProgressPage() {
             setIsLoading(true);
             const caregiverData = await getCaregiverData();
             if (caregiverData && caregiverData.children.length > 0) {
+                // For this version, we will always show progress for the first child.
+                // A future update could use a shared state for child selection.
                 const firstChild = caregiverData.children[0];
                 setChild(firstChild);
                 const gameSessions = await getGameSessions(firstChild.id, 30);
@@ -57,6 +60,7 @@ export default function ProgressPage() {
         return (
              <div className="flex h-full flex-1 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
+                <p className="ml-2 text-muted-foreground">Loading progress...</p>
              </div>
         )
     }
@@ -77,8 +81,8 @@ export default function ProgressPage() {
                     description="Dive deep into performance metrics and track improvements over time."
                 />
                  <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center rounded-lg border-2 border-dashed py-24">
-                    <p className="text-muted-foreground">No progress data available yet.</p>
-                    <p>Play some games to see your progress here!</p>
+                    <h3 className="text-xl font-semibold">No Progress Data Yet!</h3>
+                    <p className="text-muted-foreground">Play some games from the exercises tab to see your progress here.</p>
                 </div>
             </div>
         )
