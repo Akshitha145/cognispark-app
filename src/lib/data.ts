@@ -56,47 +56,48 @@ export const badges: Badge[] = [
 
 export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
     try {
-        console.log("Attempting to fetch caregiver data...");
+        console.log("Attempting to fetch caregiver data from 'caregiver' collection...");
         const caregiverQuery = query(collection(db, "caregiver"), limit(1));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
-            console.error("Firestore Error: No documents found in 'caregiver' collection. Please ensure the collection is named 'caregiver' (singular) and contains at least one document.");
+            console.error("Firestore Error: No documents found in the 'caregiver' collection. Please ensure you have created this collection and added at least one caregiver document.");
             return null;
         }
 
         const caregiverDoc = caregiverSnapshot.docs[0];
         const caregiverData = caregiverDoc.data();
         const caregiverId = caregiverDoc.id;
-        console.log(`Found caregiver with ID: ${caregiverId}`);
+        console.log(`Successfully found caregiver with ID: ${caregiverId}`);
 
         const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
         const childrenSnapshot = await getDocs(childrenQuery);
 
+        let childrenData: Child[] = [];
         if (childrenSnapshot.empty) {
             console.warn(`Firestore Warning: Found caregiver '${caregiverId}', but no children were found with a matching 'caregiverId' field in the 'children' collection.`);
+        } else {
+            childrenData = childrenSnapshot.docs.map(doc => {
+                const childData = doc.data();
+                return {
+                    id: doc.id,
+                    name: childData.Name || childData.name || 'Unnamed Child',
+                    age: childData.age || 0,
+                    disability: childData.disability || 'N/A',
+                    profilePhoto: childData.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
+                };
+            });
+            console.log(`Found ${childrenData.length} children linked to caregiver ${caregiverId}.`);
         }
-
-        const childrenData: Child[] = childrenSnapshot.docs.map(doc => {
-            const childData = doc.data();
-            return {
-                id: doc.id,
-                name: childData.Name || childData.name || 'Unnamed Child',
-                age: childData.age || 0,
-                disability: childData.disability || 'N/A',
-                profilePhoto: childData.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
-            };
-        });
         
         const assembledCaregiver: Caregiver = {
             id: caregiverId,
             name: caregiverData.Name || caregiverData.name || 'Caregiver',
             email: caregiverData.Email || caregiverData.email || 'no-email@example.com',
             profilePhoto: caregiverData.profilePhoto || `https://picsum.photos/seed/${caregiverId}/150/150`,
-            children: childrenData 
+            children: childrenData // This property is kept for consistency but might not be used directly
         };
 
-        console.log("Successfully fetched caregiver and children data:", { caregiver: assembledCaregiver, children: childrenData });
         return {
             caregiver: assembledCaregiver,
             children: childrenData
@@ -177,8 +178,11 @@ export async function getGameSessions(childId: string, days: number): Promise<Ga
             const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
             return { 
                 id: doc.id,
-                ...data,
-                timestamp,
+                childId: data.childId,
+                exerciseId: data.exerciseId,
+                score: data.score,
+                difficulty: data.difficulty,
+                timestamp: timestamp,
             } as GameSession;
         });
 
@@ -193,6 +197,7 @@ export async function getAllTherapists(): Promise<Therapist[]> {
     try {
         const therapistsSnap = await getDocs(collection(db, "therapists"));
         if (therapistsSnap.empty) {
+            console.warn("No documents found in 'therapists' collection.");
             return [];
         }
         return therapistsSnap.docs.map(doc => {
@@ -214,6 +219,7 @@ export async function getAllChildren(): Promise<Child[]> {
     try {
         const childrenSnap = await getDocs(collection(db, "children"));
         if (childrenSnap.empty) {
+            console.warn("No documents found in 'children' collection.");
             return [];
         }
         return childrenSnap.docs.map(doc => {
@@ -231,19 +237,3 @@ export async function getAllChildren(): Promise<Child[]> {
         return [];
     }
 }
-
-
-// --- Static Data ---
-// Kept for reference or for parts of the app not yet connected to Firestore.
-export const skillScores = {
-    'Memory': 0,
-    'Problem-Solving': 0,
-    'Attention': 0,
-    'Language': 0,
-    'Social-Emotional': 0,
-};
-export const exerciseScores = [];
-export const recentScores: RecentScore[] = [];
-export const children: Child[] = [];
-export const therapists: Therapist[] = [];
-export const recentActivities: RecentActivity[] = [];
