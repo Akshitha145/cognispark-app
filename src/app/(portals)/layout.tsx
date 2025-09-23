@@ -4,7 +4,7 @@ import { MainNav } from '@/components/main-nav';
 import { CogniSparkLogo } from '@/components/icons';
 import Link from 'next/link';
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>

@@ -16,12 +16,12 @@ import {
 import { getCaregiverData, getGameSessions, exercises } from '@/lib/data';
 import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Child, GameSession, ProgressDataPoint, RecentActivity as RecentActivityType } from '@/lib/types';
+import type { Caregiver, Child, GameSession, ProgressDataPoint, RecentActivity as RecentActivityType } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { subDays, format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 
-type CaregiverData = Awaited<ReturnType<typeof getCaregiverData>>;
 type OverviewStatsData = React.ComponentProps<typeof OverviewStats>['data'];
 
 
@@ -67,33 +67,37 @@ function processSessionsForDashboard(sessions: GameSession[], childName: string)
 
 
 export default function DashboardPage() {
-    const [caregiverData, setCaregiverData] = useState<CaregiverData | null>(null);
+    const [caregiver, setCaregiver] = useState<Caregiver | null>(null);
+    const [children, setChildren] = useState<Child[]>([]);
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
     const [overviewStats, setOverviewStats] = useState<OverviewStatsData | null>(null);
     const [progressChartData, setProgressChartData] = useState<ProgressDataPoint[] | null>(null);
     const [recentActivities, setRecentActivities] = useState<RecentActivityType[] | null>(null);
 
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const router = useRouter();
 
     // Initial load for caregiver and children list
     useEffect(() => {
-        const fetchData = async () => {
-            setIsInitialLoading(true);
-            const data = await getCaregiverData();
-            setCaregiverData(data);
-            if (data && data.children.length > 0) {
+        const storedCaregiver = localStorage.getItem('currentCaregiver');
+        if (storedCaregiver) {
+            const data = JSON.parse(storedCaregiver);
+            setCaregiver(data);
+            setChildren(data.children || []);
+            if (data.children && data.children.length > 0) {
                 setSelectedChildId(data.children[0].id);
             }
-            setIsInitialLoading(false);
-        };
-        fetchData();
-    }, []);
+        } else {
+            router.push('/caregiver/login');
+        }
+        setIsInitialLoading(false);
+    }, [router]);
 
     // Real-time listener for game sessions of the selected child
     useEffect(() => {
         if (!selectedChildId) return;
 
-        const child = caregiverData?.children.find(c => c.id === selectedChildId);
+        const child = children.find(c => c.id === selectedChildId);
         if (!child) return;
 
         // Reset data when child changes
@@ -110,7 +114,7 @@ export default function DashboardPage() {
 
         // Cleanup listener on component unmount or when child changes
         return () => unsubscribe();
-    }, [selectedChildId, caregiverData]);
+    }, [selectedChildId, children]);
 
 
     const handleChildChange = async (childId: string) => {
@@ -126,37 +130,37 @@ export default function DashboardPage() {
         )
     }
 
-    if (!caregiverData || !caregiverData.caregiver) {
+    if (!caregiver) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                <PageHeader title="Welcome!" description="No caregiver data found in the database." />
-                <p className="text-muted-foreground">Please add a 'caregiver' collection in Firestore and create at least one caregiver document.</p>
+                <PageHeader title="Welcome!" description="No caregiver data found." />
+                <p className="text-muted-foreground">Please log in to view the dashboard.</p>
             </div>
         )
     }
     
-    if (!selectedChildId || !caregiverData.children || caregiverData.children.length === 0) {
+    if (!selectedChildId || !children || children.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Welcome!" description="It looks like there are no children assigned to your profile." />
-                <p className="text-muted-foreground">Please add a 'children' collection in Firestore and add documents with a 'caregiverId' field that matches your caregiver's document ID.</p>
+                <p className="text-muted-foreground">You can add children to your profile in the settings.</p>
             </div>
         )
     }
 
-    const selectedChild = caregiverData.children.find(c => c.id === selectedChildId);
+    const selectedChild = children.find(c => c.id === selectedChildId);
     const isLoadingDashboardData = !overviewStats || !progressChartData || !recentActivities;
 
     return (
         <div className="flex flex-1 flex-col gap-4">
             <PageHeader title="Caregiver Dashboard" description="Welcome back! Here's an overview of your child's progress.">
-               {caregiverData.children.length > 1 && selectedChildId && (
+               {children.length > 1 && selectedChildId && (
                  <Select value={selectedChildId} onValueChange={handleChildChange}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select a child" />
                     </SelectTrigger>
                     <SelectContent>
-                        {caregiverData.children.map(child => (
+                        {children.map(child => (
                             <SelectItem key={child.id} value={child.id}>{child.name}</SelectItem>
                         ))}
                     </SelectContent>

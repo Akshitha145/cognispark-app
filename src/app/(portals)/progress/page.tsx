@@ -48,7 +48,8 @@ export default function ProgressPage() {
             childData = JSON.parse(storedChild);
             setChild(childData);
         } else {
-            router.push('/child/login');
+            router.push('/child/auth');
+            setIsLoading(false);
             return;
         }
 

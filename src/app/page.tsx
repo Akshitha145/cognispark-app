@@ -11,14 +11,14 @@ const roles = [
     name: 'Caregiver',
     description: 'Monitor progress and manage settings.',
     icon: User,
-    href: '/dashboard',
+    href: '/caregiver/login',
     cta: 'Go to Dashboard',
   },
   {
     name: 'Therapist',
     description: 'Oversee multiple children and track data.',
     icon: HeartHandshake,
-    href: '/therapist',
+    href: '/therapist/login',
     cta: 'Go to Portal',
   },
   {

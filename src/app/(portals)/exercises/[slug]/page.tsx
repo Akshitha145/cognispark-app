@@ -41,7 +41,7 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
         } else {
             // If no child is logged in, redirect to the main page or login.
             // For now, we go back to the role selection.
-            router.push('/');
+            router.push('/child/auth');
         }
         setIsLoading(false);
     }, [router]);
@@ -75,7 +75,7 @@ export default function ExercisePage({ params }: { params: Promise<{ slug: strin
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <PageHeader title="Error" description="Could not identify the player." />
                 <p className="text-muted-foreground">Please log in via the Child Portal to play.</p>
-                <Button asChild><Link href="/child/login">Go to Login</Link></Button>
+                <Button asChild><Link href="/child/auth">Go to Login</Link></Button>
             </div>
         )
     }
