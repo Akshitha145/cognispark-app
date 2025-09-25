@@ -70,13 +70,12 @@ export const badges: Badge[] = [
 
 
 export function getGameSessions(childId: string, days: number, onUpdate: (sessions: GameSession[]) => void): Unsubscribe {
-    const endDate = new Date();
-    const startDate = subDays(endDate, days);
+    const startDate = subDays(new Date(), days);
     
+    // Simplified query to avoid needing a composite index
     const sessionsQuery = query(
         collection(db, "gameSessions"), 
-        where("childId", "==", childId),
-        where("timestamp", ">=", startDate)
+        where("childId", "==", childId)
     );
 
     const unsubscribe = onSnapshot(sessionsQuery, (snapshot) => {
@@ -85,7 +84,7 @@ export function getGameSessions(childId: string, days: number, onUpdate: (sessio
             return;
         }
 
-        const sessions = snapshot.docs.map(doc => {
+        let sessions = snapshot.docs.map(doc => {
             const data = doc.data();
             const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
             return { 
@@ -98,7 +97,10 @@ export function getGameSessions(childId: string, days: number, onUpdate: (sessio
             } as GameSession;
         });
 
-        // Sort the sessions in memory instead of in the query
+        // Filter by date on the client
+        sessions = sessions.filter(session => session.timestamp >= startDate);
+
+        // Sort the sessions in memory
         sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
         
         onUpdate(sessions);

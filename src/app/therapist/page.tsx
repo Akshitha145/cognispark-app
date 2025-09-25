@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { subDays } from 'date-fns';
 
 type PatientWithProgress = Child & {
     avgScore?: number;
@@ -82,21 +83,26 @@ export default function TherapistPortalPage() {
             }
         });
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [patients, isInitialLoading]);
 
 
     const fetchProgressForPatient = useCallback(async (patientId: string) => {
+        const startDate = subDays(new Date(), 30);
         const sessionsQuery = query(
             collection(db, "gameSessions"),
             where("childId", "==", patientId)
         );
         const querySnapshot = await getDocs(sessionsQuery);
-        const sessions: GameSession[] = querySnapshot.docs.map(doc => {
+        
+        const allSessions: GameSession[] = querySnapshot.docs.map(doc => {
             const data = doc.data();
-            // Correctly handle both Firestore Timestamps and date strings/objects
             const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
             return { ...data, id: doc.id, timestamp } as GameSession;
         });
+
+        // Filter sessions for the last 30 days on the client-side
+        const sessions = allSessions.filter(s => s.timestamp >= startDate);
 
         let progressData: Partial<PatientWithProgress> = { isProgressLoading: false };
 
