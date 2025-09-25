@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Video, Loader2 } from 'lucide-react';
+import { Eye, Video, Loader2, Star, TrendingDown } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -15,16 +16,42 @@ import {
     TableHeader,
     TableRow,
   } from '@/components/ui/table';
-import type { Therapist, Child } from '@/lib/types';
-import { useEffect, useState } from 'react';
-import { getAllChildren } from '@/lib/data';
+import type { Therapist, Child, GameSession } from '@/lib/types';
+import { useEffect, useState, useCallback } from 'react';
+import { getAllChildren, exercises } from '@/lib/data';
 import { useRouter } from 'next/navigation';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+type PatientWithProgress = Child & {
+    avgScore?: number;
+    bestSkill?: { skill: string; score: number };
+    improvementSkill?: { skill: string; score: number };
+};
 
 export default function TherapistPortalPage() {
     const [therapist, setTherapist] = useState<Therapist | null>(null);
-    const [patients, setPatients] = useState<Child[]>([]);
+    const [patients, setPatients] = useState<PatientWithProgress[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+
+    const calculateSkillScores = useCallback((sessions: GameSession[]) => {
+        const skillData: { [key: string]: { totalScore: number, count: number } } = {};
+        sessions.forEach(session => {
+            const exercise = exercises.find(e => e.id === session.exerciseId);
+            if (exercise) {
+                if (!skillData[exercise.skill]) {
+                    skillData[exercise.skill] = { totalScore: 0, count: 0 };
+                }
+                skillData[exercise.skill].totalScore += session.score;
+                skillData[exercise.skill].count++;
+            }
+        });
+        return Object.entries(skillData).map(([skill, data]) => ({
+            skill,
+            score: Math.round(data.totalScore / data.count)
+        }));
+    }, []);
 
     useEffect(() => {
         const storedTherapist = localStorage.getItem('currentTherapist');
@@ -35,15 +62,41 @@ export default function TherapistPortalPage() {
             return;
         }
 
-        async function fetchPatients() {
+        async function fetchPatientsAndProgress() {
             const children = await getAllChildren();
-            // Assign all children as their patients for this prototype.
-            setPatients(children);
+            
+            const patientsWithProgress = await Promise.all(children.map(async (child) => {
+                const sessionsQuery = query(
+                    collection(db, "gameSessions"),
+                    where("childId", "==", child.id)
+                );
+                const querySnapshot = await getDocs(sessionsQuery);
+                const sessions: GameSession[] = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
+                    return { ...data, id: doc.id, timestamp } as GameSession;
+                });
+
+                if (sessions.length === 0) {
+                    return child;
+                }
+
+                const totalScore = sessions.reduce((acc, s) => acc + s.score, 0);
+                const avgScore = Math.round(totalScore / sessions.length);
+                const skillScores = calculateSkillScores(sessions);
+                
+                const bestSkill = skillScores.reduce((max, skill) => skill.score > max.score ? skill : max, { skill: 'N/A', score: 0 });
+                const improvementSkill = skillScores.reduce((min, skill) => skill.score < min.score ? skill : min, { skill: 'N/A', score: 101 });
+
+                return { ...child, avgScore, bestSkill, improvementSkill };
+            }));
+
+            setPatients(patientsWithProgress);
             setIsLoading(false);
         }
         
-        fetchPatients();
-    }, [router]);
+        fetchPatientsAndProgress();
+    }, [router, calculateSkillScores]);
 
   if (isLoading || !therapist) {
     return (
@@ -74,16 +127,17 @@ export default function TherapistPortalPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Your Patients</CardTitle>
-                    <CardDescription>An overview of the children under your care.</CardDescription>
+                    <CardDescription>An overview of the children under your care with their latest progress.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Patient</TableHead>
-                                <TableHead>Age</TableHead>
                                 <TableHead>Disability</TableHead>
-                                <TableHead>Recent Activity</TableHead>
+                                <TableHead>Avg. Score</TableHead>
+                                <TableHead>Best Skill</TableHead>
+                                <TableHead>Needs Improvement</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -100,12 +154,35 @@ export default function TherapistPortalPage() {
                                                 <span className="font-medium">{patient.name}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell>{patient.age}</TableCell>
                                         <TableCell>
                                             <Badge variant="secondary">{patient.disability}</Badge>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {'No recent activity'}
+                                         <TableCell>
+                                            {patient.avgScore !== undefined ? (
+                                                <Badge variant={patient.avgScore > 75 ? 'default' : 'outline'}>{patient.avgScore}%</Badge>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">No Data</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {patient.bestSkill && patient.bestSkill.skill !== 'N/A' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Star className="h-4 w-4 text-amber-500" />
+                                                    <span className="text-sm">{patient.bestSkill.skill}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">N/A</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                             {patient.improvementSkill && patient.improvementSkill.skill !== 'N/A' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <TrendingDown className="h-4 w-4 text-destructive" />
+                                                    <span className="text-sm">{patient.improvementSkill.skill}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">N/A</span>
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -127,8 +204,8 @@ export default function TherapistPortalPage() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
-                                        No patients found. Please add children to the 'children' collection in Firestore.
+                                    <TableCell colSpan={6} className="h-24 text-center">
+                                        No patients found.
                                     </TableCell>
                                 </TableRow>
                             )}
