@@ -16,23 +16,22 @@ export type AuthFormState = {
 } | null;
 
 async function findCaregiverByName(name: string): Promise<(Caregiver & { children: Child[] }) | null> {
-    const lowercasedName = name.toLowerCase();
     const caregiversCollection = collection(db, "caregiver");
-    const caregiverSnapshot = await getDocs(caregiversCollection);
-
-    if (caregiverSnapshot.empty) {
-        return null;
-    }
-
-    let foundCaregiverDoc = null;
     const nameFieldsToTry = ['name', 'Name', 'caregiverName', 'fullName'];
 
-    // Loop through docs to perform case-insensitive comparison
-    for (const doc of caregiverSnapshot.docs) {
-        const data = doc.data();
-        for (const field of nameFieldsToTry) {
-            if (data[field] && typeof data[field] === 'string' && data[field].toLowerCase() === lowercasedName) {
-                foundCaregiverDoc = { id: doc.id, ...data };
+    let foundCaregiverDoc = null;
+
+    // Firestore queries are case-sensitive. We can try a few common cases.
+    const nameVariations = [name, name.toLowerCase(), name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()];
+    const uniqueNameVariations = [...new Set(nameVariations)]; // Remove duplicates
+
+    for (const field of nameFieldsToTry) {
+        for (const nameVar of uniqueNameVariations) {
+            const q = query(caregiversCollection, where(field, "==", nameVar));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                const doc = snapshot.docs[0];
+                foundCaregiverDoc = { id: doc.id, ...doc.data() };
                 break;
             }
         }

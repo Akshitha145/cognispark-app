@@ -3,7 +3,7 @@
 
 import type { Therapist } from '@/lib/types';
 import { z } from 'zod';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 const authenticateTherapistSchema = z.object({
@@ -17,35 +17,37 @@ export type AuthFormState = {
 
 
 async function findTherapistByName(name: string): Promise<Therapist | null> {
-    const lowercasedName = name.toLowerCase();
-    
-    const nameFieldsToTry = ['name', 'Name', 'therapistName', 'fullName'];
-    let foundTherapistDoc = null;
-
     const therapistsCollection = collection(db, "therapist");
-    const therapistSnapshot = await getDocs(therapistsCollection);
+    const nameFieldsToTry = ['name', 'Name', 'therapistName', 'fullName'];
 
-     if (therapistSnapshot.empty) {
-        // Hardcoded fallback for demonstration
-        const therapists: Therapist[] = [
-            { id: 'therapist1', name: 'Dr. Anya', specialization: 'Child Psychology', profilePhoto: 'https://picsum.photos/seed/5/150/150' },
-            { id: 'therapist2', name: 'Dr. Ben', specialization: 'Behavioral Therapy', profilePhoto: 'https://picsum.photos/seed/6/150/150' }
-        ];
-        return therapists.find(t => t.name.toLowerCase() === lowercasedName) || null;
-    }
+    let foundTherapistDoc = null;
+    
+    // Firestore queries are case-sensitive. We can try a few common cases.
+    const nameVariations = [name, name.toLowerCase(), name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()];
+    const uniqueNameVariations = [...new Set(nameVariations)]; // Remove duplicates, e.g. if name is already lowercase
 
-    for (const doc of therapistSnapshot.docs) {
-        const data = doc.data();
-        for (const field of nameFieldsToTry) {
-            if (data[field] && typeof data[field] === 'string' && data[field].toLowerCase() === lowercasedName) {
-                foundTherapistDoc = { id: doc.id, ...data };
+    for (const field of nameFieldsToTry) {
+        for (const nameVar of uniqueNameVariations) {
+            const q = query(therapistsCollection, where(field, "==", nameVar));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const doc = snapshot.docs[0];
+                foundTherapistDoc = { id: doc.id, ...doc.data() };
                 break;
             }
         }
         if (foundTherapistDoc) break;
     }
 
-    if (!foundTherapistDoc) return null;
+    if (!foundTherapistDoc) {
+        // Hardcoded fallback for demonstration if Firestore is empty
+        const therapists: Therapist[] = [
+            { id: 'therapist1', name: 'Dr. Anya', specialization: 'Child Psychology', profilePhoto: 'https://picsum.photos/seed/5/150/150' },
+            { id: 'therapist2', name: 'Dr. Ben', specialization: 'Behavioral Therapy', profilePhoto: 'https://picsum.photos/seed/6/150/150' }
+        ];
+        return therapists.find(t => t.name.toLowerCase() === name.toLowerCase()) || null;
+    }
 
     return {
         id: foundTherapistDoc.id,
