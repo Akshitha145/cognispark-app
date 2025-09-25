@@ -1,8 +1,7 @@
 
 'use server';
 
-import { getCaregiverData } from '@/lib/data';
-import type { Caregiver } from '@/lib/types';
+import type { Caregiver, Child } from '@/lib/types';
 import { z } from 'zod';
 
 const authenticateCaregiverSchema = z.object({
@@ -30,15 +29,28 @@ export async function authenticateCaregiver(
 
     try {
         const { name } = validatedFields.data;
-        const result = await getCaregiverData(name);
-
-        if (!result) {
+        
+        if (name.toLowerCase() !== 'maria') {
             return { message: 'Caregiver name not found. Please check the spelling and try again. Note: valid caregiver is "Maria".' };
         }
+
+        const children: Child[] = [
+            { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: `https://picsum.photos/seed/1/150/150`, caregiverId: 'caregiver1' },
+            { id: 'child2', name: 'Bella', age: 7, disability: 'Autism', profilePhoto: `https://picsum.photos/seed/2/150/150`, caregiverId: 'caregiver1' },
+            { id: 'child3', name: 'Charlie', age: 9, disability: 'Dyslexia', profilePhoto: `https://picsum.photos/seed/3/150/150`, caregiverId: 'caregiver1' }
+        ];
+
+        const caregiver: Caregiver = {
+            id: 'caregiver1',
+            name: 'Maria',
+            email: 'maria@example.com',
+            profilePhoto: `https://picsum.photos/seed/4/150/150`,
+            children: children
+        };
         
         return {
             message: "success",
-            caregiver: result.caregiver,
+            caregiver: caregiver,
         };
 
     } catch (e: any) {
