@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-// A very short, looping, and lightweight audio clip as a data URI to prevent build/network errors.
+// A short, audible, looping audio clip as a data URI.
 const backgroundMusicDataUri = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
 export function BackgroundMusic() {
@@ -28,7 +28,6 @@ export function BackgroundMusic() {
     // If autoplay fails, this listener will start the music on the first user interaction.
     const handleFirstInteraction = () => {
       playAudio();
-      // Remove the listener after it has run once.
       window.removeEventListener('click', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
     };

@@ -33,7 +33,8 @@ const bubbleColors = [
     '#22d3ee', // cyan-400
     '#ef4444', // red-500
 ];
-const popSoundUri = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+// A valid, audible pop sound
+const popSoundUri = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19PANsQ/t/9//8AAlAD/wAA/";
 
 let bubbleId = 0;
 const STARS_TO_WIN = 5;
