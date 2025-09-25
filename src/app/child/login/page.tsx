@@ -61,7 +61,7 @@ export default function ChildRegisterPage() {
                 <form action={formAction}>
                     <CardHeader>
                         <CardTitle>Sign Up</CardTitle>
-                        <CardDescription>Enter your name and your caregiver's name to create an account.</CardDescription>
+                        <CardDescription>Enter your name and your caregiver's name to create an account. (Hint: Use caregiver "Maria")</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
@@ -70,7 +70,7 @@ export default function ChildRegisterPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="caregiverName">Caretaker Name</Label>
-                            <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Krish" defaultValue={state?.fields?.caregiverName} required />
+                            <Input id="caregiverName" name="caregiverName" type="text" placeholder="e.g. Maria" defaultValue={state?.fields?.caregiverName} required />
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">

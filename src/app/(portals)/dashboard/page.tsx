@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
   } from '@/components/ui/select';
-import { getCaregiverData, getGameSessions, exercises } from '@/lib/data';
+import { getGameSessions, exercises } from '@/lib/data';
 import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Caregiver, Child, GameSession, ProgressDataPoint, RecentActivity as RecentActivityType } from '@/lib/types';
@@ -86,16 +86,22 @@ export default function DashboardPage() {
             setChildren(data.children || []);
             if (data.children && data.children.length > 0) {
                 setSelectedChildId(data.children[0].id);
+            } else {
+                 setIsInitialLoading(false);
             }
         } else {
             router.push('/caregiver/login');
         }
-        setIsInitialLoading(false);
     }, [router]);
 
     // Real-time listener for game sessions of the selected child
     useEffect(() => {
-        if (!selectedChildId) return;
+        if (!selectedChildId) {
+            if(!isInitialLoading && caregiver) { // only set loading to false if we are not initial loading and have a caregiver
+                setIsInitialLoading(false);
+            }
+            return
+        };
 
         const child = children.find(c => c.id === selectedChildId);
         if (!child) return;
@@ -110,11 +116,12 @@ export default function DashboardPage() {
             setOverviewStats(overviewStats);
             setProgressChartData(progressChartData);
             setRecentActivities(recentActivities);
+            setIsInitialLoading(false);
         });
 
         // Cleanup listener on component unmount or when child changes
         return () => unsubscribe();
-    }, [selectedChildId, children]);
+    }, [selectedChildId, children, isInitialLoading, caregiver]);
 
 
     const handleChildChange = async (childId: string) => {
@@ -141,9 +148,12 @@ export default function DashboardPage() {
     
     if (!selectedChildId || !children || children.length === 0) {
         return (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                <PageHeader title="Welcome!" description="It looks like there are no children assigned to your profile." />
-                <p className="text-muted-foreground">You can add children to your profile in the settings.</p>
+            <div className="flex flex-1 flex-col gap-6">
+                <PageHeader title={`Welcome, ${caregiver.name}!`} description="It looks like there are no children assigned to your profile." />
+                <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center rounded-lg border-2 border-dashed py-24">
+                    <h3 className="text-xl font-semibold">No Children Found</h3>
+                    <p className="text-muted-foreground">You can add children to your profile in the settings (feature coming soon).</p>
+                </div>
             </div>
         )
     }

@@ -1,9 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
 import type { Therapist } from '@/lib/types';
-import { collection, getDocs, query } from 'firebase/firestore';
 import { z } from 'zod';
 
 const authenticateTherapistSchema = z.object({
@@ -33,39 +31,20 @@ export async function authenticateTherapist(
         const { name } = validatedFields.data;
         const inputName = name.trim().toLowerCase();
 
-        const therapistQuery = query(collection(db, "therapists"));
-        const therapistSnapshot = await getDocs(therapistQuery);
+        const therapists: Therapist[] = [
+            { id: 'therapist1', name: 'Dr. Anya', specialization: 'Child Psychology', profilePhoto: 'https://picsum.photos/seed/5/150/150' },
+            { id: 'therapist2', name: 'Dr. Ben', specialization: 'Behavioral Therapy', profilePhoto: 'https://picsum.photos/seed/6/150/150' }
+        ];
 
-        if (therapistSnapshot.empty) {
-            return { message: 'No therapist profiles found in the database. Please contact support.' };
-        }
+        const foundTherapist = therapists.find(t => t.name.toLowerCase() === inputName);
 
-        let foundTherapistDoc = null;
-        for (const doc of therapistSnapshot.docs) {
-            const therapistData = doc.data();
-            const docName = therapistData.name || therapistData.Name;
-            if (docName && docName.trim().toLowerCase() === inputName) {
-                foundTherapistDoc = doc;
-                break;
-            }
-        }
-
-        if (!foundTherapistDoc) {
-             return { message: 'Therapist name not found. Please check the spelling and try again.' };
+        if (!foundTherapist) {
+             return { message: 'Therapist name not found. Please check the spelling. Hint: try "Dr. Anya".' };
         }
         
-        const therapistData = foundTherapistDoc.data();
-
-        const therapist: Therapist = {
-            id: foundTherapistDoc.id,
-            name: therapistData.name || therapistData.Name,
-            specialization: therapistData.specialization,
-            profilePhoto: therapistData.profilePhoto,
-        };
-
         return {
             message: "success",
-            therapist: therapist,
+            therapist: foundTherapist,
         };
 
     } catch (e: any) {

@@ -69,61 +69,30 @@ export const badges: Badge[] = [
 ];
 
 
-export async function getCaregiverData(): Promise<{caregiver: Caregiver, children: Child[]} | null> {
-    try {
-        // Step 1: Fetch the first caregiver document from the 'caregiver' collection.
-        const caregiverQuery = query(collection(db, "caregiver"), limit(1));
-        const caregiverSnapshot = await getDocs(caregiverQuery);
+export async function getCaregiverData(caregiverName: string): Promise<{caregiver: Caregiver, children: Child[]} | null> {
+    
+    const caregivers: Caregiver[] = [
+        { id: 'caregiver1', name: 'Maria', email: 'maria@example.com', profilePhoto: `https://picsum.photos/seed/4/150/150`, children: [] },
+    ];
 
-        if (caregiverSnapshot.empty) {
-            console.error("Firestore Error: No documents found in the 'caregiver' collection.");
-            return null;
-        }
+    const children: Child[] = [
+        { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: `https://picsum.photos/seed/1/150/150`, caregiverId: 'caregiver1' },
+        { id: 'child2', name: 'Bella', age: 7, disability: 'Autism', profilePhoto: `https://picsum.photos/seed/2/150/150`, caregiverId: 'caregiver1' },
+        { id: 'child3', name: 'Charlie', age: 9, disability: 'Dyslexia', profilePhoto: `https://picsum.photos/seed/3/150/150`, caregiverId: 'caregiver1' }
+    ];
 
-        const caregiverDoc = caregiverSnapshot.docs[0];
-        const caregiverData = caregiverDoc.data();
-        const caregiverId = caregiverDoc.id; // This is the actual Document ID, e.g., "caregiver1"
+    const foundCaregiver = caregivers.find(c => c.name.toLowerCase() === caregiverName.toLowerCase());
 
-        // Step 2: Fetch all children where 'caregiverId' matches the ID found in Step 1.
-        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
-        const childrenSnapshot = await getDocs(childrenQuery);
-        
-        let childrenData: Child[] = [];
-        if (childrenSnapshot.empty) {
-            console.warn(`Firestore Warning: No children found with caregiverId: ${caregiverId}`);
-        } else {
-             childrenData = childrenSnapshot.docs.map(doc => {
-                const childData = doc.data();
-                // Handle both 'Name' and 'name' for resilience.
-                const name = childData.Name || childData.name || 'Unnamed Child';
-                return {
-                    id: doc.id,
-                    name: name,
-                    age: childData.age || 0,
-                    disability: childData.disability || 'N/A',
-                    profilePhoto: childData.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
-                };
-            });
-        }
-        
-        // Step 3: Assemble the final caregiver object.
-        const assembledCaregiver: Caregiver = {
-            id: caregiverId,
-            name: caregiverData.Name || caregiverData.name || 'Caregiver',
-            email: caregiverData.Email || caregiverData.email || 'no-email@example.com',
-            profilePhoto: caregiverData.profilePhoto || `https://picsum.photos/seed/${caregiverId}/150/150`,
-            children: childrenData 
-        };
-
-        return {
-            caregiver: assembledCaregiver,
-            children: childrenData
-        };
-
-    } catch (error) {
-        console.error("CRITICAL ERROR in getCaregiverData:", error);
+    if (!foundCaregiver) {
         return null;
     }
+    
+    foundCaregiver.children = children.filter(c => c.caregiverId === foundCaregiver.id);
+
+    return {
+        caregiver: foundCaregiver,
+        children: foundCaregiver.children
+    };
 }
 
 export function getGameSessions(childId: string, days: number, onUpdate: (sessions: GameSession[]) => void): Unsubscribe {
@@ -169,46 +138,16 @@ export function getGameSessions(childId: string, days: number, onUpdate: (sessio
 
 
 export async function getAllTherapists(): Promise<Therapist[]> {
-    try {
-        const therapistsSnap = await getDocs(collection(db, "therapists"));
-        if (therapistsSnap.empty) {
-            console.warn("No documents found in 'therapists' collection.");
-            return [];
-        }
-        return therapistsSnap.docs.map(doc => {
-            const data = doc.data();
-            return { 
-                id: doc.id,
-                name: data.name || data.Name || 'Therapist',
-                specialization: data.specialization || 'N/A',
-                profilePhoto: data.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`,
-            } as Therapist;
-        });
-    } catch (error) {
-        console.error("Error fetching therapists:", error);
-        return [];
-    }
+    return [
+        { id: 'therapist1', name: 'Dr. Anya', specialization: 'Child Psychology', profilePhoto: 'https://picsum.photos/seed/5/150/150' },
+        { id: 'therapist2', name: 'Dr. Ben', specialization: 'Behavioral Therapy', profilePhoto: 'https://picsum.photos/seed/6/150/150' }
+    ];
 }
 
 export async function getAllChildren(): Promise<Child[]> {
-    try {
-        const childrenSnap = await getDocs(collection(db, "children"));
-        if (childrenSnap.empty) {
-            console.warn("No documents found in 'children' collection.");
-            return [];
-        }
-        return childrenSnap.docs.map(doc => {
-            const data = doc.data();
-            return {
-                 id: doc.id,
-                 name: data.name || data.Name || 'Child',
-                 age: data.age || 0,
-                 disability: data.disability || 'N_A',
-                 profilePhoto: data.profilePhoto || `https://picsum.photos/seed/${doc.id}/150/150`
-            } as Child;
-        });
-    } catch (error) {
-        console.error("Error fetching children:", error);
-        return [];
-    }
+     return [
+        { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: `https://picsum.photos/seed/1/150/150` },
+        { id: 'child2', name: 'Bella', age: 7, disability: 'Autism', profilePhoto: `https://picsum.photos/seed/2/150/150` },
+        { id: 'child3', name: 'Charlie', age: 9, disability: 'Dyslexia', profilePhoto: `https://picsum.photos/seed/3/150/150` }
+    ];
 }

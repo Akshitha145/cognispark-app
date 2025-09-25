@@ -1,9 +1,8 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
-import type { Caregiver, Child } from '@/lib/types';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { getCaregiverData } from '@/lib/data';
+import type { Caregiver } from '@/lib/types';
 import { z } from 'zod';
 
 const authenticateCaregiverSchema = z.object({
@@ -31,69 +30,15 @@ export async function authenticateCaregiver(
 
     try {
         const { name } = validatedFields.data;
-        const inputName = name.trim().toLowerCase();
+        const result = await getCaregiverData(name);
+
+        if (!result) {
+            return { message: 'Caregiver name not found. Please check the spelling and try again. Note: valid caregiver is "Maria".' };
+        }
         
-        const caregiverQuery = query(collection(db, "caregiver"));
-        const caregiverSnapshot = await getDocs(caregiverQuery);
-
-        if (caregiverSnapshot.empty) {
-            return { message: 'No caregiver profiles found in the database. Please contact support.' };
-        }
-
-        let foundCaregiverDoc = null;
-
-        for (const doc of caregiverSnapshot.docs) {
-            const caregiverData = doc.data();
-
-            const docName =
-                caregiverData.name ||
-                caregiverData.Name ||
-                caregiverData.caregiverName ||
-                caregiverData.fullName;
-
-            if (docName && docName.trim().toLowerCase() === inputName) {
-                foundCaregiverDoc = doc;
-                break;
-            }
-        }
-
-
-        if (!foundCaregiverDoc) {
-            return { message: 'Caregiver name not found. Please check the spelling and try again.' };
-        }
-
-        const caregiverId = foundCaregiverDoc.id;
-        const caregiverData = foundCaregiverDoc.data();
-
-        // Fetch children belonging to this caregiver
-        const childrenQuery = query(
-            collection(db, "children"), 
-            where("caregiverId", "==", caregiverId)
-        );
-        const childrenSnapshot = await getDocs(childrenQuery);
-
-        const children: Child[] = childrenSnapshot.docs.map(doc => {
-            const childData = doc.data();
-            return {
-                id: doc.id,
-                name: childData.name || childData.Name || 'Unnamed Child',
-                age: childData.age,
-                disability: childData.disability,
-                profilePhoto: childData.profilePhoto,
-            };
-        });
-
-        const caregiver: Caregiver = {
-            id: caregiverId,
-            name: caregiverData.name || caregiverData.Name || caregiverData.caregiverName || 'Unnamed Caregiver',
-            email: caregiverData.email || caregiverData.Email || '',
-            profilePhoto: caregiverData.profilePhoto || '',
-            children: children,
-        };
-
         return {
             message: "success",
-            caregiver: caregiver,
+            caregiver: result.caregiver,
         };
 
     } catch (e: any) {

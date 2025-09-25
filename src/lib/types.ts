@@ -4,6 +4,7 @@ export type Child = {
   age: number;
   disability: string;
   profilePhoto: string;
+  caregiverId?: string;
 };
 
 export type Caregiver = {

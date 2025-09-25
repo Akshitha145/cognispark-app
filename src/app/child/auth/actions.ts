@@ -37,60 +37,30 @@ export async function authenticateChild(
         const inputName = name.trim().toLowerCase();
         const inputCaregiverName = caregiverName.trim().toLowerCase();
 
-        // 1. Find the caregiver first
-        const caregiverQuery = query(collection(db, "caregiver"));
-        const caregiverSnapshot = await getDocs(caregiverQuery);
+        // For this simplified version, we'll use hardcoded data.
+        const validCaregivers = ['maria'];
+        const validChildren = [
+            { id: 'child1', name: 'alex', caregiver: 'maria', age: 8, disability: 'ADHD', profilePhoto: 'https://picsum.photos/seed/1/150/150' },
+            { id: 'child2', name: 'bella', caregiver: 'maria', age: 7, disability: 'Autism', profilePhoto: 'https://picsum.photos/seed/2/150/150' },
+            { id: 'child3', name: 'charlie', caregiver: 'maria', age: 9, disability: 'Dyslexia', profilePhoto: 'https://picsum.photos/seed/3/150/150' },
+        ];
         
-        let foundCaregiverDoc = null;
-        if (!caregiverSnapshot.empty) {
-            for (const doc of caregiverSnapshot.docs) {
-                const caregiverData = doc.data();
-                const docName = caregiverData.name || caregiverData.Name || caregiverData.caregiverName || caregiverData.fullName;
-                if (docName && docName.trim().toLowerCase() === inputCaregiverName) {
-                    foundCaregiverDoc = doc;
-                    break;
-                }
-            }
-        }
-
-        if (!foundCaregiverDoc) {
-            return { message: 'Caregiver name not found. Please check the spelling.' };
+        if (!validCaregivers.includes(inputCaregiverName)) {
+            return { message: 'Caregiver name not found. Please check the spelling. Hint: try "Maria".' };
         }
         
-        const caregiverId = foundCaregiverDoc.id;
+        const foundChild = validChildren.find(c => c.name === inputName && c.caregiver === inputCaregiverName);
 
-        // 2. Find the child associated with that caregiver
-        const childrenQuery = query(
-            collection(db, "children"), 
-            where("caregiverId", "==", caregiverId)
-        );
-        const childrenSnapshot = await getDocs(childrenQuery);
-
-        if (childrenSnapshot.empty) {
-             return { message: 'No children found for the specified caregiver.' };
+        if (!foundChild) {
+            return { message: `Could not find a child named '${name}' for caregiver '${caregiverName}'. Hint: try "Alex".` };
         }
 
-        let foundChildDoc = null;
-        for (const doc of childrenSnapshot.docs) {
-            const childData = doc.data();
-            const docName = childData.name || childData.Name;
-             if (docName && docName.trim().toLowerCase() === inputName) {
-                foundChildDoc = doc;
-                break;
-            }
-        }
-
-        if (!foundChildDoc) {
-            return { message: `Could not find a child named '${name}' for caregiver '${caregiverName}'.` };
-        }
-
-        const childData = foundChildDoc.data();
         const child: Child = {
-            id: foundChildDoc.id,
-            name: childData.name || childData.Name || 'Unnamed Child',
-            age: childData.age,
-            disability: childData.disability,
-            profilePhoto: childData.profilePhoto,
+            id: foundChild.id,
+            name: name, // Keep original capitalization for display
+            age: foundChild.age,
+            disability: foundChild.disability,
+            profilePhoto: foundChild.profilePhoto,
         };
 
         return {
