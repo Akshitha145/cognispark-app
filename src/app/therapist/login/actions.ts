@@ -33,7 +33,6 @@ export async function authenticateTherapist(
         const { name } = validatedFields.data;
         const inputName = name.trim().toLowerCase();
 
-        // Find the therapist by name (case-insensitive).
         const therapistQuery = query(collection(db, "therapists"));
         const therapistSnapshot = await getDocs(therapistQuery);
 
@@ -70,7 +69,7 @@ export async function authenticateTherapist(
         };
 
     } catch (e: any) {
-        console.error(e);
+        console.error("Authentication error:", e);
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }

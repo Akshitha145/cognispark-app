@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import type { Caregiver, Child } from '@/lib/types';
+import type { Child } from '@/lib/types';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { z } from 'zod';
 
