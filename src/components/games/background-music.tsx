@@ -37,7 +37,7 @@ export function BackgroundMusic() {
 
     return (
         <audio ref={audioRef} loop>
-            <source src="https://cdn.pixabay.com/audio/2022/11/22/audio_72c219179d.mp3" type="audio/mpeg" />
+            <source src="https://storage.googleapis.com/studioprototypefy.appspot.com/assets/calm-background-music.mp3" type="audio/mpeg" />
             Your browser does not support the audio element.
         </audio>
     );
