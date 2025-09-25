@@ -1,3 +1,4 @@
+
 'use server';
 
 import { adaptExercise, PersonalizedExerciseAdaptationInput } from '@/ai/flows/personalized-exercise-adaptation.ts';
