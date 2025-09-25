@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { BrainCircuit, Puzzle, CheckCircle, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,22 +87,25 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
         const timer = setTimeout(() => {
             setAttempts(prev => prev + 1);
             const [firstId, secondId] = flippedCards;
-            const firstCard = cards.find(c => c.id === firstId);
-            const secondCard = cards.find(c => c.id === secondId);
 
-            if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
-                if (!isPlaying) playAudio('You found a match!', 'en-US');
-                setCards(prev => prev.map(card =>
-                    card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
-                ));
-                setFlippedCards([]);
-            } else {
-                if (!isPlaying) playAudio('Oops, try again!', 'en-US');
-                setCards(prev => prev.map(card =>
-                    (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
-                ));
-                setFlippedCards([]);
-            }
+            setCards(currentCards => {
+                const firstCard = currentCards.find(c => c.id === firstId);
+                const secondCard = currentCards.find(c => c.id === secondId);
+
+                if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
+                     if (!isPlaying) playAudio('You found a match!', 'en-US');
+                     return currentCards.map(card =>
+                        card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
+                    );
+                } else {
+                    if (!isPlaying) playAudio('Oops, try again!', 'en-US');
+                    return currentCards.map(card =>
+                        (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
+                    );
+                }
+            });
+            setFlippedCards([]);
+
         }, 1000);
 
         return () => clearTimeout(timer);
