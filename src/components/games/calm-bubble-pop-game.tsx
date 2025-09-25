@@ -33,7 +33,7 @@ const bubbleColors = [
     '#22d3ee', // cyan-400
     '#ef4444', // red-500
 ];
-const popSoundUrl = 'https://archive.org/download/bubble-pop-sound-effect/bubble-pop-sound-effect.mp3';
+const popSoundUrl = 'https://freesound.org/data/previews/346/346862_5121236-lq.mp3';
 
 let bubbleId = 0;
 const STARS_TO_WIN = 5;
