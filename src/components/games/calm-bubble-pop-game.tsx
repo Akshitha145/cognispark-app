@@ -45,6 +45,8 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
     const [startTime, setStartTime] = useState<number | null>(null);
     const { toast } = useToast();
     const { playAudio, isPlaying } = useAudioPlayer();
+    const popAudioRef = useRef<HTMLAudioElement>(null);
+
 
     const progress = useMemo(() => (starsPopped / STARS_TO_WIN) * 100, [starsPopped]);
     
@@ -60,6 +62,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
 
 
     const createBubble = useCallback(() => {
+        if (isComplete) return;
         if (!startTime) {
             setStartTime(Date.now());
         }
@@ -75,7 +78,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
             type: type,
         };
         setBubbles(prev => [...prev, newBubble]);
-    }, [startTime]);
+    }, [startTime, isComplete]);
 
     useEffect(() => {
         if (isComplete) return;
@@ -83,9 +86,16 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
         return () => clearInterval(interval);
     }, [isComplete, createBubble]);
 
+    const playPopSound = () => {
+        if (popAudioRef.current) {
+            popAudioRef.current.currentTime = 0;
+            popAudioRef.current.play().catch(e => console.error("Error playing pop sound:", e));
+        }
+    }
+
     const handlePop = (bubble: Bubble) => {
         setBubbles(prev => prev.filter(b => b.id !== bubble.id));
-        new Audio(popSoundUrl).play().catch(e => console.error("Error playing sound", e));
+        playPopSound();
         
         if (bubble.type === 'star') {
             setStarsPopped(prev => prev + 1);
@@ -123,6 +133,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
 
     return (
         <Card className="relative overflow-hidden">
+            <audio ref={popAudioRef} src={popSoundUrl} preload="auto"></audio>
             <CardHeader>
                 <CardTitle>{exercise.title}</CardTitle>
                 <CardDescription>
