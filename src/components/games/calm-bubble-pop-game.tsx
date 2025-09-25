@@ -18,7 +18,7 @@ import { useAudioPlayer } from '@/hooks/use-audio-player';
 type BubbleType = 'normal' | 'star';
 
 type Bubble = {
-  id: number;
+  id: string; // Changed to string for more robust unique IDs
   x: number;
   size: number;
   duration: number;
@@ -34,7 +34,6 @@ const bubbleColors = [
     '#ef4444', // red-500
 ];
 
-let bubbleId = 0;
 const STARS_TO_WIN = 5;
 
 export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; child: Child }) {
@@ -69,7 +68,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
         const type: BubbleType = Math.random() < 0.2 ? 'star' : 'normal';
         
         const newBubble: Bubble = {
-            id: bubbleId++,
+            id: `${Date.now()}-${Math.random()}`, // Use a more robust unique ID
             x: Math.random() * 90, // % from left
             size: type === 'star' ? Math.random() * 20 + 50 : Math.random() * 40 + 30, // Stars are bigger
             duration: Math.random() * 5 + 8, // 8 to 13 seconds
