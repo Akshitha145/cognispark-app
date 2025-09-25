@@ -65,7 +65,7 @@ export async function authenticateCaregiver(
             const childData = doc.data();
             return {
                 id: doc.id,
-                name: childData.name || childData.Name,
+                name: childData.name || childData.Name || 'Unnamed Child',
                 age: childData.age,
                 disability: childData.disability,
                 profilePhoto: childData.profilePhoto,
