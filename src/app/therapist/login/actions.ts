@@ -31,6 +31,7 @@ export async function authenticateTherapist(
 
     try {
         const { name } = validatedFields.data;
+        const inputName = name.trim().toLowerCase();
 
         // Find the therapist by name (case-insensitive).
         const therapistQuery = query(collection(db, "therapists"));
@@ -44,7 +45,7 @@ export async function authenticateTherapist(
         for (const doc of therapistSnapshot.docs) {
             const therapistData = doc.data();
             const docName = therapistData.Name || therapistData.name;
-            if (docName && docName.toLowerCase() === name.toLowerCase()) {
+            if (docName && docName.trim().toLowerCase() === inputName) {
                 foundTherapistDoc = doc;
                 break;
             }
@@ -73,4 +74,3 @@ export async function authenticateTherapist(
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }
-

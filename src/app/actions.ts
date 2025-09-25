@@ -46,8 +46,8 @@ export async function authenticateChild(
         let foundCaregiverDoc = null;
         for (const doc of caregiverSnapshot.docs) {
             const caregiverData = doc.data();
-            const docName = caregiverData.Name || caregiverData.name;
-            if (docName && docName.toLowerCase() === caregiverName.toLowerCase()) {
+            const docCaregiverName = caregiverData.Name || caregiverData.name;
+            if (docCaregiverName && docCaregiverName.toLowerCase() === caregiverName.toLowerCase()) {
                 foundCaregiverDoc = doc;
                 break;
             }
@@ -70,10 +70,10 @@ export async function authenticateChild(
         let foundChildDoc = null;
         for (const doc of childSnapshot.docs) {
             const childData = doc.data();
-            const docName = childData.name || childData.Name;
+            const docChildName = childData.name || childData.Name;
             const docCaregiverId = childData.caregiverId;
 
-            if (docName && docName.toLowerCase() === name.toLowerCase() && docCaregiverId === caregiverId) {
+            if (docChildName && docChildName.toLowerCase() === name.toLowerCase() && docCaregiverId === caregiverId) {
                 foundChildDoc = doc;
                 break;
             }
@@ -102,4 +102,3 @@ export async function authenticateChild(
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }
-
