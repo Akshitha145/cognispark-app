@@ -69,32 +69,6 @@ export const badges: Badge[] = [
 ];
 
 
-export async function getCaregiverData(caregiverName: string): Promise<{caregiver: Caregiver, children: Child[]} | null> {
-    
-    const caregivers: Caregiver[] = [
-        { id: 'caregiver1', name: 'Maria', email: 'maria@example.com', profilePhoto: `https://picsum.photos/seed/4/150/150`, children: [] },
-    ];
-
-    const children: Child[] = [
-        { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: `https://picsum.photos/seed/1/150/150`, caregiverId: 'caregiver1' },
-        { id: 'child2', name: 'Bella', age: 7, disability: 'Autism', profilePhoto: `https://picsum.photos/seed/2/150/150`, caregiverId: 'caregiver1' },
-        { id: 'child3', name: 'Charlie', age: 9, disability: 'Dyslexia', profilePhoto: `https://picsum.photos/seed/3/150/150`, caregiverId: 'caregiver1' }
-    ];
-
-    const foundCaregiver = caregivers.find(c => c.name.toLowerCase() === caregiverName.toLowerCase());
-
-    if (!foundCaregiver) {
-        return null;
-    }
-    
-    foundCaregiver.children = children.filter(c => c.caregiverId === foundCaregiver.id);
-
-    return {
-        caregiver: foundCaregiver,
-        children: foundCaregiver.children
-    };
-}
-
 export function getGameSessions(childId: string, days: number, onUpdate: (sessions: GameSession[]) => void): Unsubscribe {
     const endDate = new Date();
     const startDate = subDays(endDate, days);
