@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -36,7 +37,7 @@ export function BackgroundMusic() {
 
     return (
         <audio ref={audioRef} loop>
-            <source src="https://www.chosic.com/wp-content/uploads/2022/01/Evening-Improvisation-with-calm-river-and-birds.mp3" type="audio/mpeg" />
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg" />
             Your browser does not support the audio element.
         </audio>
     );
