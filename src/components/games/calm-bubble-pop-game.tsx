@@ -13,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle, RotateCcw, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 type BubbleType = 'normal' | 'star';
 
@@ -32,7 +33,7 @@ const bubbleColors = [
     '#22d3ee', // cyan-400
     '#ef4444', // red-500
 ];
-const popSoundUrl = 'https://www.zapsplat.com/wp-content/uploads/2015/sound-effects-zapsplat/zapsplat_multimedia_button_click_fast_short_soft_001_63852.mp3';
+const popSoundUrl = 'https://cdn.pixabay.com/audio/2021/08/04/audio_c6ccf32332.mp3';
 
 let bubbleId = 0;
 const STARS_TO_WIN = 5;
@@ -42,6 +43,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
     const [starsPopped, setStarsPopped] = useState(0);
     const [isComplete, setIsComplete] = useState(false);
     const { toast } = useToast();
+    const { playAudio, isPlaying } = useAudioPlayer();
 
     const progress = useMemo(() => (starsPopped / STARS_TO_WIN) * 100, [starsPopped]);
     const score = useMemo(() => Math.round((starsPopped / STARS_TO_WIN) * 100), [starsPopped]);
@@ -85,6 +87,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
     useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
+                if (!isPlaying) playAudio('Well done!', 'en-US');
                 const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: score, difficulty: 'Easy' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: `You earned ${score} points!` });
@@ -94,6 +97,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
             }
         }
         handleCompletion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComplete, exercise.id, score, toast, child.id]);
 
     const handleRestart = () => {
