@@ -17,32 +17,15 @@ export type AuthFormState = {
 
 async function findCaregiverByName(name: string): Promise<(Caregiver & { children: Child[] }) | null> {
     const lowercasedName = name.toLowerCase();
-    
-    // Check against multiple possible field names case-insensitively.
-    const nameFieldsToTry = ['name', 'Name', 'caregiverName', 'fullName'];
-    let foundCaregiverDoc = null;
-
     const caregiversCollection = collection(db, "caregiver");
     const caregiverSnapshot = await getDocs(caregiversCollection);
 
     if (caregiverSnapshot.empty) {
-        // Hardcoded fallback for demonstration if database is empty
-        if (lowercasedName === 'maria') {
-             const children: Child[] = [
-                { id: 'child1', name: 'Alex', age: 8, disability: 'ADHD', profilePhoto: `https://picsum.photos/seed/1/150/150`, caregiverId: 'caregiver1' },
-                { id: 'child2', name: 'Bella', age: 7, disability: 'Autism', profilePhoto: `https://picsum.photos/seed/2/150/150`, caregiverId: 'caregiver1' },
-                { id: 'child3', name: 'Charlie', age: 9, disability: 'Dyslexia', profilePhoto: `https://picsum.photos/seed/3/150/150`, caregiverId: 'caregiver1' }
-            ];
-             return {
-                id: 'caregiver1',
-                name: 'Maria',
-                email: 'maria@example.com',
-                profilePhoto: `https://picsum.photos/seed/4/150/150`,
-                children: children
-            };
-        }
         return null;
     }
+
+    let foundCaregiverDoc = null;
+    const nameFieldsToTry = ['name', 'Name', 'caregiverName', 'fullName'];
 
     // Loop through docs to perform case-insensitive comparison
     for (const doc of caregiverSnapshot.docs) {
@@ -92,7 +75,7 @@ export async function authenticateCaregiver(
         const caregiver = await findCaregiverByName(name);
 
         if (!caregiver) {
-            return { message: 'Caregiver name not found. Please check the spelling and try again. Note: valid caregiver is "Maria".' };
+            return { message: 'Caregiver name not found. Please check the spelling and try again.' };
         }
         
         return {
