@@ -1,9 +1,7 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
-
-// A short, audible, looping audio clip as a data URI.
-const backgroundMusicDataUri = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
 export function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -15,40 +13,39 @@ export function BackgroundMusic() {
     audio.volume = 0.1;
     audio.loop = true;
 
-    // This function attempts to play the audio and handles browser autoplay restrictions.
     const playAudio = () => {
-      audio.play().catch((error) => {
-        console.warn('Autoplay was prevented. Music will start on user interaction.', error);
+      audio.play().catch((err) => {
+        console.warn('Autoplay prevented, will try on user interaction:', err);
       });
     };
 
-    // Attempt to play immediately
     playAudio();
 
-    // If autoplay fails, this listener will start the music on the first user interaction.
-    const handleFirstInteraction = () => {
+    // Fallback: play on first user interaction
+    const handleUserInteraction = () => {
       playAudio();
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
     };
 
-    window.addEventListener('click', handleFirstInteraction);
-    window.addEventListener('keydown', handleFirstInteraction);
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
 
-    // Cleanup function: this runs when the component is unmounted.
     return () => {
-      audio.pause();
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      if (audio) {
+        audio.pause();
+      }
     };
   }, []);
 
   return (
     <audio
       ref={audioRef}
-      src={backgroundMusicDataUri}
-      preload="auto"
+      src="/audio/background.mp3"
       style={{ display: 'none' }}
+      preload="auto"
     />
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -32,8 +33,6 @@ const bubbleColors = [
     '#22d3ee', // cyan-400
     '#ef4444', // red-500
 ];
-// A valid, audible pop sound
-const popSoundUri = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19PANsQ/t/9//8AAlAD/wAA/";
 
 let bubbleId = 0;
 const STARS_TO_WIN = 5;
@@ -133,7 +132,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
 
     return (
         <Card className="relative overflow-hidden">
-             <audio ref={popAudioRef} src={popSoundUri} style={{ display: 'none' }} preload="auto" />
+             <audio ref={popAudioRef} src="/audio/pop.mp3" style={{ display: 'none' }} preload="auto" />
             <CardHeader>
                 <CardTitle>{exercise.title}</CardTitle>
                 <CardDescription>
