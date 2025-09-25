@@ -56,7 +56,7 @@ export function ColorQuestGame({ exercise, child }: { exercise: Exercise; child:
             const newFound = [...found, item.id];
             setFound(newFound);
         } else if (!found.includes(item.id)) {
-            if (!isPlaying) playAudio('Oops!', 'en-US');
+            if (!isPlaying) playAudio('Oops, try again!', 'en-US');
         }
     };
     

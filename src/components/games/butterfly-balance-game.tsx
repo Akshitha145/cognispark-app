@@ -82,7 +82,7 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
 
         } else {
             setMistakes(m => m + 1);
-            if (!isPlaying) playAudio('Oops!', 'en-US');
+            if (!isPlaying) playAudio('Oops, try again!', 'en-US');
             toast({
                 variant: 'destructive',
                 title: 'Oops!',
