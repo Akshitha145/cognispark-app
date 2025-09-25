@@ -73,3 +73,4 @@ export async function authenticateTherapist(
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }
+

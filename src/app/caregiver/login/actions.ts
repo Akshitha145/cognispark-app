@@ -91,3 +91,4 @@ export async function authenticateCaregiver(
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }
+

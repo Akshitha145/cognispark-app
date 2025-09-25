@@ -102,3 +102,4 @@ export async function authenticateChild(
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }
+
