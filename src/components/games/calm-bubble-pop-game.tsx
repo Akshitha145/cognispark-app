@@ -33,7 +33,7 @@ const bubbleColors = [
     '#22d3ee', // cyan-400
     '#ef4444', // red-500
 ];
-const popSoundUrl = 'https://freesound.org/data/previews/346/346862_5121236-lq.mp3';
+const popSoundUrl = 'https://cdn.pixabay.com/audio/2022/03/15/audio_22d7a46f29.mp3';
 
 let bubbleId = 0;
 const STARS_TO_WIN = 5;
