@@ -24,7 +24,7 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
     const { toast } = useToast();
     const { playAudio, isPlaying } = useAudioPlayer();
 
-    const performance = useMemo(() => Math.max(0, Math.round((score / round) * 100) - (mistakes * 5)), [score, round, mistakes]);
+    const performance = useMemo(() => Math.max(0, Math.round((score / (round -1)) * 100) - (mistakes * 5)), [score, round, mistakes]);
 
     const lightUpRandomButterfly = useCallback(() => {
         const randomIndex = Math.floor(Math.random() * GRID_SIZE);
@@ -69,7 +69,7 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
         }
         handleCompletion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isComplete, exercise.id, performance, toast, child.id]);
+    }, [isComplete]);
 
     const handleButterflyClick = (index: number) => {
         if (isComplete) return;

@@ -61,7 +61,7 @@ export function ColorQuestGame({ exercise, child }: { exercise: Exercise; child:
     };
     
     const checkCompletion = useCallback(() => {
-        if (found.length === totalTargets) {
+        if (found.length > 0 && found.length === totalTargets) {
             setIsComplete(true);
         }
     }, [found, totalTargets]);
@@ -85,7 +85,7 @@ export function ColorQuestGame({ exercise, child }: { exercise: Exercise; child:
         }
         handleCompletion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isComplete, exercise.id, performance, toast, child.id]);
+    }, [isComplete]);
 
     const handleRestart = () => {
         setLevel(generateLevel());

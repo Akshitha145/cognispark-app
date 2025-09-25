@@ -71,7 +71,7 @@ export function FocusForestGame({ exercise, child }: { exercise: Exercise, child
         }
         handleCompletion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isComplete, exercise.id, performance, toast, child.id]);
+    }, [isComplete]);
 
     const handleRestart = () => {
         setLevelItems(generateLevel());
