@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Exercise, Child } from '@/lib/types';
 import { BubbleIcon } from '@/components/icons';
@@ -42,13 +42,27 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
     const [bubbles, setBubbles] = useState<Bubble[]>([]);
     const [starsPopped, setStarsPopped] = useState(0);
     const [isComplete, setIsComplete] = useState(false);
+    const [startTime, setStartTime] = useState<number | null>(null);
     const { toast } = useToast();
     const { playAudio, isPlaying } = useAudioPlayer();
 
     const progress = useMemo(() => (starsPopped / STARS_TO_WIN) * 100, [starsPopped]);
-    const score = useMemo(() => Math.round((starsPopped / STARS_TO_WIN) * 100), [starsPopped]);
+    
+    const performance = useMemo(() => {
+        if (isComplete && startTime) {
+            const timeTaken = (Date.now() - startTime) / 1000;
+            // Base score is 100, lose 2 points for every second over 10 seconds.
+            const score = Math.max(10, 100 - Math.round(Math.max(0, timeTaken - 10) * 2));
+            return score;
+        }
+        return 0;
+    }, [isComplete, startTime]);
+
 
     const createBubble = useCallback(() => {
+        if (!startTime) {
+            setStartTime(Date.now());
+        }
         // One in five chance for a star bubble
         const type: BubbleType = Math.random() < 0.2 ? 'star' : 'normal';
         
@@ -61,7 +75,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
             type: type,
         };
         setBubbles(prev => [...prev, newBubble]);
-    }, []);
+    }, [startTime]);
 
     useEffect(() => {
         if (isComplete) return;
@@ -88,9 +102,9 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
         async function handleCompletion() {
             if (isComplete) {
                 if (!isPlaying) playAudio('Well done!', 'en-US');
-                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: score, difficulty: 'Easy' });
+                const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
                 if (result.success) {
-                    toast({ title: 'Progress Saved!', description: `You earned ${score} points!` });
+                    toast({ title: 'Progress Saved!', description: `You earned ${performance} points!` });
                 } else {
                     toast({ variant: 'destructive', title: 'Error', description: 'Could not save your score.' });
                 }
@@ -98,12 +112,13 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
         }
         handleCompletion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isComplete, exercise.id, score, toast, child.id]);
+    }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleRestart = () => {
         setBubbles([]);
         setStarsPopped(0);
         setIsComplete(false);
+        setStartTime(null);
     };
 
     return (
@@ -120,7 +135,7 @@ export function CalmBubblePopGame({ exercise, child }: { exercise: Exercise; chi
                         <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
                         <h3 className="text-2xl font-bold mb-2">Well Done!</h3>
                         <p className="text-muted-foreground mb-4">You collected all the stars.</p>
-                        <p className="text-xl font-bold mb-6">Final Score: {score}%</p>
+                        <p className="text-xl font-bold mb-6">Final Score: {performance}%</p>
                         <Button onClick={handleRestart}><RotateCcw className="mr-2 h-4 w-4" /> Play Again</Button>
                     </div>
                 ) : (
