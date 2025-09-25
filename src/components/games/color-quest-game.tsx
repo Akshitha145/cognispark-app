@@ -9,6 +9,7 @@ import type { Exercise, Child } from '@/lib/types';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 const colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#8b5cf6'];
 const shapes = ['circle', 'square', 'triangle'] as const;
@@ -44,14 +45,18 @@ export function ColorQuestGame({ exercise, child }: { exercise: Exercise; child:
     const [isComplete, setIsComplete] = useState(false);
     const [startTime, setStartTime] = useState(Date.now());
     const { toast } = useToast();
+    const { playAudio, isPlaying } = useAudioPlayer();
 
     const totalTargets = useMemo(() => level.items.filter(item => item.color === level.targetColor).length, [level]);
     const performance = Math.round((found.length / totalTargets) * 100);
 
     const handleItemClick = (item: GameItem) => {
         if (item.color === level.targetColor && !found.includes(item.id)) {
+            if (!isPlaying) playAudio('Correct!', 'en-US');
             const newFound = [...found, item.id];
             setFound(newFound);
+        } else if (!found.includes(item.id)) {
+            if (!isPlaying) playAudio('Oops!', 'en-US');
         }
     };
     
@@ -69,6 +74,7 @@ export function ColorQuestGame({ exercise, child }: { exercise: Exercise; child:
     useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
+                if (!isPlaying) playAudio('You found them all!', 'en-US');
                 const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Medium' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
@@ -78,6 +84,7 @@ export function ColorQuestGame({ exercise, child }: { exercise: Exercise; child:
             }
         }
         handleCompletion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleRestart = () => {

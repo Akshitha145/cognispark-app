@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import type { Exercise, Child } from '@/lib/types';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 const puzzles = [
     { target: Square, options: [Square, Triangle, Lightbulb], correct: 0 },
@@ -24,6 +25,7 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
     const [isComplete, setIsComplete] = useState(false);
     const [score, setScore] = useState(0);
     const { toast } = useToast();
+    const { playAudio, isPlaying } = useAudioPlayer();
 
     const currentPuzzle = useMemo(() => puzzles[currentPuzzleIndex], [currentPuzzleIndex]);
     const performance = Math.round((score / puzzles.length) * 100);
@@ -35,6 +37,9 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
         setIsCorrect(correct);
         if (correct) {
             setScore(s => s + 1);
+            if (!isPlaying) playAudio('Correct!', 'en-US');
+        } else {
+            if (!isPlaying) playAudio('Oops, try again!', 'en-US');
         }
         setTimeout(() => {
             if (currentPuzzleIndex < puzzles.length - 1) {
@@ -50,6 +55,7 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
      useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
+                if (!isPlaying) playAudio('Great job!', 'en-US');
                 const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
@@ -59,6 +65,7 @@ export function PatternPuzzlesGame({ exercise, child }: { exercise: Exercise, ch
             }
         }
         handleCompletion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleRestart = () => {

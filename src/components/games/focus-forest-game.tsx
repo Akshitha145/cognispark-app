@@ -8,6 +8,7 @@ import { CheckCircle, RotateCcw } from 'lucide-react';
 import type { Exercise, Child } from '@/lib/types';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 // Using emojis for a more playful feel
 const animals = ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁'];
@@ -37,6 +38,7 @@ export function FocusForestGame({ exercise, child }: { exercise: Exercise, child
     const [startTime, setStartTime] = useState<number>(0);
     const [timeTaken, setTimeTaken] = useState<number | null>(null);
     const { toast } = useToast();
+    const { playAudio, isPlaying } = useAudioPlayer();
     
     const performance = timeTaken ? Math.max(10, 100 - Math.floor(timeTaken - 3) * 10) : 0;
 
@@ -47,11 +49,12 @@ export function FocusForestGame({ exercise, child }: { exercise: Exercise, child
 
     const handleItemClick = (item: GameItem) => {
         if (item.isUnique) {
+            if (!isPlaying) playAudio('You found it!', 'en-US');
             const endTime = Date.now();
             setTimeTaken((endTime - startTime) / 1000);
             setIsComplete(true);
         } else {
-            // Optional: Add a small penalty or visual feedback for wrong clicks
+            if (!isPlaying) playAudio('Oops, try again!', 'en-US');
         }
     };
     
@@ -67,6 +70,7 @@ export function FocusForestGame({ exercise, child }: { exercise: Exercise, child
             }
         }
         handleCompletion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleRestart = () => {

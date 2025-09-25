@@ -10,6 +10,7 @@ import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
 import { useToast } from '@/hooks/use-toast';
 import { ButterflyIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 const GRID_SIZE = 9;
 
@@ -21,6 +22,7 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
     const [round, setRound] = useState(1);
     const [isComplete, setIsComplete] = useState(false);
     const { toast } = useToast();
+    const { playAudio, isPlaying } = useAudioPlayer();
 
     const performance = useMemo(() => Math.max(0, Math.round((score / round) * 100) - (mistakes * 5)), [score, round, mistakes]);
 
@@ -56,6 +58,7 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
      useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
+                if (!isPlaying) playAudio('Great focus!', 'en-US');
                 const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Medium' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
@@ -65,6 +68,7 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
             }
         }
         handleCompletion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComplete, exercise.id, performance, toast, child.id]);
 
     const handleButterflyClick = (index: number) => {
@@ -73,10 +77,12 @@ export function ButterflyBalanceGame({ exercise, child }: { exercise: Exercise; 
         if (index === glowingIndex) {
             setScore(s => s + 1);
             setGlowingIndex(-1); // Stop glowing immediately on correct click
+            if (!isPlaying) playAudio('Correct!', 'en-US');
             setRound(r => r + 1);
 
         } else {
             setMistakes(m => m + 1);
+            if (!isPlaying) playAudio('Oops!', 'en-US');
             toast({
                 variant: 'destructive',
                 title: 'Oops!',

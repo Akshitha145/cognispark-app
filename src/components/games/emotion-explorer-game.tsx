@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import type { Exercise, Child } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { saveGameSession } from '@/app/(main)/exercises/[slug]/actions';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 const emotions = [
     { emoji: '😊', name: 'Happy', copingStrategy: 'Share your smile with someone! What made you feel this way?' },
@@ -56,6 +57,7 @@ export function EmotionExplorerGame({
     const [isComplete, setIsComplete] = useState(false);
     const [score, setScore] = useState(0);
     const [gameState, setGameState] = useState<'question' | 'feedback'>('question');
+    const { playAudio, isPlaying } = useAudioPlayer();
 
     const currentPuzzle = useMemo(() => puzzles[currentPuzzleIndex], [puzzles, currentPuzzleIndex]);
     const performance = Math.round((score / puzzles.length) * 100);
@@ -79,15 +81,17 @@ export function EmotionExplorerGame({
         setIsCorrect(correct);
         if (correct) {
             setScore(s => s + 1);
+            if (!isPlaying) playAudio('Correct!', 'en-US');
             setTimeout(() => {
                 setGameState('feedback');
             }, 1000);
         } else {
+            if (!isPlaying) playAudio('Oops, that was ' + currentPuzzle.target.name, 'en-US');
              setTimeout(() => {
                 moveToNextStep();
             }, 2000); // Give more time to see the correct answer
         }
-    }, [currentPuzzle, gameState, moveToNextStep]);
+    }, [currentPuzzle, gameState, moveToNextStep, isPlaying, playAudio]);
 
     useEffect(() => {
         if (transcript && !isListening && gameState === 'question') {
@@ -113,6 +117,7 @@ export function EmotionExplorerGame({
      useEffect(() => {
         async function handleCompletion() {
             if (isComplete) {
+                if (!isPlaying) playAudio('You\'re an emotion expert!', 'en-US');
                 const result = await saveGameSession({ childId: child.id, exerciseId: exercise.id, score: performance, difficulty: 'Easy' });
                 if (result.success) {
                     toast({ title: 'Progress Saved!', description: 'Your score has been recorded.' });
@@ -122,6 +127,7 @@ export function EmotionExplorerGame({
             }
         }
         handleCompletion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComplete, exercise.id, performance, toast, child.id]);
 
 
