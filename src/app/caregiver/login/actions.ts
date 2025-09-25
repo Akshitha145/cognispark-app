@@ -31,9 +31,9 @@ export async function authenticateCaregiver(
 
     try {
         const { name } = validatedFields.data;
+        const inputName = name.trim().toLowerCase();
 
-        // Find the caregiver by name (case-insensitive).
-        const caregiverQuery = query(collection(db, "caregiver"));
+        const caregiverQuery = query(collection(db, "caregiver")); 
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
@@ -41,26 +41,35 @@ export async function authenticateCaregiver(
         }
 
         let foundCaregiverDoc = null;
+
         for (const doc of caregiverSnapshot.docs) {
             const caregiverData = doc.data();
-            const docName = caregiverData.Name || caregiverData.name;
-            if (docName && docName.toLowerCase() === name.toLowerCase()) {
+
+            const docName =
+                caregiverData.name ||
+                caregiverData.Name ||
+                caregiverData.caregiverName ||
+                caregiverData.fullName;
+
+            if (docName && docName.trim().toLowerCase() === inputName) {
                 foundCaregiverDoc = doc;
                 break;
             }
         }
 
         if (!foundCaregiverDoc) {
-             return { message: 'Caregiver name not found. Please check the spelling and try again.' };
+            return { message: 'Caregiver name not found. Please check the spelling and try again.' };
         }
-        
+
         const caregiverId = foundCaregiverDoc.id;
         const caregiverData = foundCaregiverDoc.data();
 
-         // Fetch all children for this caregiver
-        const childrenQuery = query(collection(db, "children"), where("caregiverId", "==", caregiverId));
+        const childrenQuery = query(
+            collection(db, "children"), 
+            where("caregiverId", "==", caregiverId)
+        );
         const childrenSnapshot = await getDocs(childrenQuery);
-        
+
         const children: Child[] = childrenSnapshot.docs.map(doc => {
             const childData = doc.data();
             return {
@@ -72,12 +81,11 @@ export async function authenticateCaregiver(
             };
         });
 
-
         const caregiver: Caregiver = {
             id: caregiverId,
-            name: caregiverData.name || caregiverData.Name,
-            email: caregiverData.email || caregiverData.Email,
-            profilePhoto: caregiverData.profilePhoto,
+            name: caregiverData.name || caregiverData.Name || caregiverData.caregiverName || 'Unnamed Caregiver',
+            email: caregiverData.email || caregiverData.Email || '',
+            profilePhoto: caregiverData.profilePhoto || '',
             children: children,
         };
 
@@ -87,8 +95,7 @@ export async function authenticateCaregiver(
         };
 
     } catch (e: any) {
-        console.error(e);
+        console.error("Authentication error:", e);
         return { message: 'An unexpected error occurred during login. Please try again.' };
     }
 }
-
