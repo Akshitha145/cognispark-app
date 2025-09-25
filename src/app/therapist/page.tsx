@@ -22,17 +22,19 @@ import { getAllChildren, exercises } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type PatientWithProgress = Child & {
     avgScore?: number;
     bestSkill?: { skill: string; score: number };
     improvementSkill?: { skill: string; score: number };
+    isProgressLoading?: boolean;
 };
 
 export default function TherapistPortalPage() {
     const [therapist, setTherapist] = useState<Therapist | null>(null);
     const [patients, setPatients] = useState<PatientWithProgress[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
     const router = useRouter();
 
     const calculateSkillScores = useCallback((sessions: GameSession[]) => {
@@ -62,43 +64,59 @@ export default function TherapistPortalPage() {
             return;
         }
 
-        async function fetchPatientsAndProgress() {
+        async function fetchInitialPatients() {
             const children = await getAllChildren();
-            
-            const patientsWithProgress = await Promise.all(children.map(async (child) => {
-                const sessionsQuery = query(
-                    collection(db, "gameSessions"),
-                    where("childId", "==", child.id)
-                );
-                const querySnapshot = await getDocs(sessionsQuery);
-                const sessions: GameSession[] = querySnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
-                    return { ...data, id: doc.id, timestamp } as GameSession;
-                });
-
-                if (sessions.length === 0) {
-                    return child;
-                }
-
-                const totalScore = sessions.reduce((acc, s) => acc + s.score, 0);
-                const avgScore = Math.round(totalScore / sessions.length);
-                const skillScores = calculateSkillScores(sessions);
-                
-                const bestSkill = skillScores.reduce((max, skill) => skill.score > max.score ? skill : max, { skill: 'N/A', score: 0 });
-                const improvementSkill = skillScores.reduce((min, skill) => skill.score < min.score ? skill : min, { skill: 'N/A', score: 101 });
-
-                return { ...child, avgScore, bestSkill, improvementSkill };
-            }));
-
-            setPatients(patientsWithProgress);
-            setIsLoading(false);
+            setPatients(children.map(c => ({...c, isProgressLoading: true })));
+            setIsInitialLoading(false);
         }
         
-        fetchPatientsAndProgress();
-    }, [router, calculateSkillScores]);
+        fetchInitialPatients();
+    }, [router]);
 
-  if (isLoading || !therapist) {
+    useEffect(() => {
+        if (isInitialLoading || patients.length === 0) return;
+
+        patients.forEach(patient => {
+            if (patient.isProgressLoading) {
+                fetchProgressForPatient(patient.id);
+            }
+        });
+
+    }, [patients, isInitialLoading]);
+
+
+    const fetchProgressForPatient = useCallback(async (patientId: string) => {
+        const sessionsQuery = query(
+            collection(db, "gameSessions"),
+            where("childId", "==", patientId)
+        );
+        const querySnapshot = await getDocs(sessionsQuery);
+        const sessions: GameSession[] = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            // Correctly handle both Firestore Timestamps and date strings/objects
+            const timestamp = data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp);
+            return { ...data, id: doc.id, timestamp } as GameSession;
+        });
+
+        let progressData: Partial<PatientWithProgress> = { isProgressLoading: false };
+
+        if (sessions.length > 0) {
+            const totalScore = sessions.reduce((acc, s) => acc + s.score, 0);
+            const avgScore = Math.round(totalScore / sessions.length);
+            const skillScores = calculateSkillScores(sessions);
+            
+            const bestSkill = skillScores.length > 0 ? skillScores.reduce((max, skill) => skill.score > max.score ? skill : max) : { skill: 'N/A', score: 0 };
+            const improvementSkill = skillScores.length > 0 ? skillScores.reduce((min, skill) => skill.score < min.score ? skill : min) : { skill: 'N/A', score: 101 };
+            
+            progressData = { ...progressData, avgScore, bestSkill, improvementSkill };
+        }
+        
+        setPatients(prev => prev.map(p => p.id === patientId ? { ...p, ...progressData } : p));
+        
+    }, [calculateSkillScores]);
+
+
+  if (isInitialLoading || !therapist) {
     return (
         <div className="flex h-screen flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -158,14 +176,16 @@ export default function TherapistPortalPage() {
                                             <Badge variant="secondary">{patient.disability}</Badge>
                                         </TableCell>
                                          <TableCell>
-                                            {patient.avgScore !== undefined ? (
+                                            {patient.isProgressLoading ? <Skeleton className="h-5 w-12" /> :
+                                                patient.avgScore !== undefined ? (
                                                 <Badge variant={patient.avgScore > 75 ? 'default' : 'outline'}>{patient.avgScore}%</Badge>
                                             ) : (
                                                 <span className="text-muted-foreground text-xs">No Data</span>
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            {patient.bestSkill && patient.bestSkill.skill !== 'N/A' ? (
+                                            {patient.isProgressLoading ? <Skeleton className="h-5 w-24" /> :
+                                                patient.bestSkill && patient.bestSkill.skill !== 'N/A' ? (
                                                 <div className="flex items-center gap-2">
                                                     <Star className="h-4 w-4 text-amber-500" />
                                                     <span className="text-sm">{patient.bestSkill.skill}</span>
@@ -175,7 +195,8 @@ export default function TherapistPortalPage() {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                             {patient.improvementSkill && patient.improvementSkill.skill !== 'N/A' ? (
+                                            {patient.isProgressLoading ? <Skeleton className="h-5 w-24" /> :
+                                                patient.improvementSkill && patient.improvementSkill.skill !== 'N/A' ? (
                                                 <div className="flex items-center gap-2">
                                                     <TrendingDown className="h-4 w-4 text-destructive" />
                                                     <span className="text-sm">{patient.improvementSkill.skill}</span>
