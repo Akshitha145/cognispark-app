@@ -83,27 +83,30 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
     useEffect(() => {
         if (!isMounted || flippedCards.length !== 2) return;
 
-        setAttempts(prev => prev + 1);
-        const [firstId, secondId] = flippedCards;
-        const firstCard = cards.find(c => c.id === firstId);
-        const secondCard = cards.find(c => c.id === secondId);
+        const timer = setTimeout(() => {
+            setAttempts(prev => prev + 1);
+            const [firstId, secondId] = flippedCards;
+            const firstCard = cards.find(c => c.id === firstId);
+            const secondCard = cards.find(c => c.id === secondId);
 
-        if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
-            if (!isPlaying) playAudio('You found a match!', 'en-US');
-            setCards(prev => prev.map(card =>
-                card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
-            ));
-             setTimeout(() => setFlippedCards([]), 500);
-        } else {
-             if (!isPlaying) playAudio('Oops, try again!', 'en-US');
-             setTimeout(() => {
-                setCards(prev => prev.map(card => 
+            if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
+                if (!isPlaying) playAudio('You found a match!', 'en-US');
+                setCards(prev => prev.map(card =>
+                    card.symbol === firstCard.symbol ? { ...card, isMatched: true, isFlipped: true } : card
+                ));
+                setFlippedCards([]);
+            } else {
+                if (!isPlaying) playAudio('Oops, try again!', 'en-US');
+                setCards(prev => prev.map(card =>
                     (card.id === firstId || card.id === secondId) ? { ...card, isFlipped: false } : card
                 ));
                 setFlippedCards([]);
-            }, 1000);
-        }
-    }, [flippedCards, cards, isMounted, playAudio, isPlaying]);
+            }
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flippedCards, isMounted, playAudio, isPlaying]);
 
     useEffect(() => {
         if (isMounted && cards.length > 0 && cards.every(c => c.isMatched)) {
@@ -132,10 +135,12 @@ export function MemoryMatchGame({ exercise, child }: { exercise: Exercise, child
 
     const handleCardClick = (id: number) => {
         const card = cards.find(c => c.id === id);
-        if (flippedCards.length < 2 && card && !card.isFlipped && !isComplete) {
-            setCards(prev => prev.map(c => c.id === id ? { ...c, isFlipped: true } : c));
-            setFlippedCards(prev => [...prev, id]);
+        if (flippedCards.length === 2 || (card && (card.isFlipped || card.isMatched)) || isComplete) {
+            return;
         }
+
+        setCards(prev => prev.map(c => c.id === id ? { ...c, isFlipped: true } : c));
+        setFlippedCards(prev => [...prev, id]);
     };
     
     const handleRestart = () => {
