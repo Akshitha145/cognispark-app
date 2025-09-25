@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -24,6 +25,10 @@ const TextToSpeechOutputSchema = z.object({
     audioDataUri: z.string().describe("The generated audio as a data URI in WAV format.")
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
+
+// In-memory cache for TTS audio
+const audioCache = new Map<string, string>();
+
 
 export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpeechOutput> {
   return textToSpeechFlow(input);
@@ -64,6 +69,13 @@ const textToSpeechFlow = ai.defineFlow(
       outputSchema: TextToSpeechOutputSchema,
     },
     async (input) => {
+        const cacheKey = `${input.languageCode}:${input.text}`;
+        if (audioCache.has(cacheKey)) {
+            return {
+                audioDataUri: audioCache.get(cacheKey)!,
+            };
+        }
+
         const { media } = await ai.generate({
             model: googleAI.model('gemini-2.5-flash-preview-tts'),
             config: {
@@ -85,9 +97,13 @@ const textToSpeechFlow = ai.defineFlow(
       );
 
       const wavBase64 = await toWav(audioBuffer);
+      const audioDataUri = 'data:audio/wav;base64,' + wavBase64;
       
+      // Store in cache
+      audioCache.set(cacheKey, audioDataUri);
+
       return {
-        audioDataUri: 'data:audio/wav;base64,' + wavBase64,
+        audioDataUri: audioDataUri,
       };
     }
 );
