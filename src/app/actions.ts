@@ -47,12 +47,12 @@ export async function authenticateChild(
             return { message: 'No caregivers found in the database.' };
         }
 
-        let foundCaregiver = null;
+        let foundCaregiver: (Caregiver & { id: string }) | null = null;
         for (const doc of caregiverSnapshot.docs) {
-             const caregiverData = doc.data();
-             const docName = caregiverData.name || caregiverData.Name || caregiverData.caregiverName || caregiverData.fullName;
+             const caregiverData = doc.data() as Omit<Caregiver, 'id' | 'children'>;
+             const docName = caregiverData.name || (caregiverData as any).Name || (caregiverData as any).caregiverName || (caregiverData as any).fullName;
              if (docName && docName.trim().toLowerCase() === inputCaregiverName) {
-                 foundCaregiver = { id: doc.id, ...caregiverData };
+                 foundCaregiver = { id: doc.id, ...caregiverData, children: [] };
                  break;
              }
         }

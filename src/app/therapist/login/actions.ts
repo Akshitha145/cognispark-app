@@ -44,7 +44,7 @@ export async function authenticateTherapist(
         let foundTherapistDoc = null;
         for (const doc of therapistSnapshot.docs) {
             const therapistData = doc.data();
-            const docName = therapistData.Name || therapistData.name;
+            const docName = therapistData.name || therapistData.Name;
             if (docName && docName.trim().toLowerCase() === inputName) {
                 foundTherapistDoc = doc;
                 break;
