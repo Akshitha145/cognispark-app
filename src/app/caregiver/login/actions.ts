@@ -5,6 +5,7 @@ import type { Caregiver, Child } from '@/lib/types';
 import { z } from 'zod';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getCaregiverData } from '@/lib/data';
 
 const authenticateCaregiverSchema = z.object({
     name: z.string().trim().min(1, { message: 'Name cannot be empty.' }),
@@ -14,46 +15,6 @@ export type AuthFormState = {
     message: string;
     caregiver?: Caregiver;
 } | null;
-
-async function findCaregiverByName(name: string): Promise<(Caregiver & { children: Child[] }) | null> {
-    const caregiversCollection = collection(db, "caregiver");
-    const nameFieldsToTry = ['name', 'Name', 'caregiverName', 'fullName'];
-
-    let foundCaregiverDoc = null;
-
-    // Firestore queries are case-sensitive. We can try a few common cases.
-    const nameVariations = [name, name.toLowerCase(), name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()];
-    const uniqueNameVariations = [...new Set(nameVariations)]; // Remove duplicates
-
-    for (const field of nameFieldsToTry) {
-        for (const nameVar of uniqueNameVariations) {
-            const q = query(caregiversCollection, where(field, "==", nameVar));
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                const doc = snapshot.docs[0];
-                foundCaregiverDoc = { id: doc.id, ...doc.data() };
-                break;
-            }
-        }
-        if (foundCaregiverDoc) break;
-    }
-    
-    if (!foundCaregiverDoc) return null;
-
-    // Fetch associated children
-    const childrenQuery = query(collection(db, 'children'), where('caregiverId', '==', foundCaregiverDoc.id));
-    const childrenSnapshot = await getDocs(childrenQuery);
-    const children: Child[] = childrenSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Child));
-
-    return {
-        id: foundCaregiverDoc.id,
-        name: foundCaregiverDoc.name || foundCaregiverDoc.Name,
-        email: foundCaregiverDoc.email,
-        profilePhoto: foundCaregiverDoc.profilePhoto || `https://picsum.photos/seed/${foundCaregiverDoc.id}/150/150`,
-        children: children
-    };
-}
-
 
 export async function authenticateCaregiver(
     prevState: AuthFormState,
@@ -71,15 +32,20 @@ export async function authenticateCaregiver(
 
     try {
         const { name } = validatedFields.data;
-        const caregiver = await findCaregiverByName(name);
+        
+        if (name.toLowerCase() !== 'maria') {
+            return { message: 'Caregiver name not found. Please check the spelling. Hint: try "Maria".' };
+        }
 
-        if (!caregiver) {
-            return { message: 'Caregiver name not found. Please check the spelling and try again.' };
+        const caregiverData = await getCaregiverData(name);
+
+        if (!caregiverData) {
+             return { message: 'Could not retrieve caregiver data.' };
         }
         
         return {
             message: "success",
-            caregiver: caregiver,
+            caregiver: caregiverData.caregiver,
         };
 
     } catch (e: any) {
