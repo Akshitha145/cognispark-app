@@ -32,8 +32,8 @@ export async function authenticateCaregiver(
     try {
         const { name } = validatedFields.data;
         const inputName = name.trim().toLowerCase();
-
-        const caregiverQuery = query(collection(db, "caregiver")); 
+        
+        const caregiverQuery = query(collection(db, "caregiver"));
         const caregiverSnapshot = await getDocs(caregiverQuery);
 
         if (caregiverSnapshot.empty) {
@@ -57,6 +57,7 @@ export async function authenticateCaregiver(
             }
         }
 
+
         if (!foundCaregiverDoc) {
             return { message: 'Caregiver name not found. Please check the spelling and try again.' };
         }
@@ -64,6 +65,7 @@ export async function authenticateCaregiver(
         const caregiverId = foundCaregiverDoc.id;
         const caregiverData = foundCaregiverDoc.data();
 
+        // Fetch children belonging to this caregiver
         const childrenQuery = query(
             collection(db, "children"), 
             where("caregiverId", "==", caregiverId)

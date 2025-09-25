@@ -2,13 +2,13 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import type { Child } from '@/lib/types';
-import { collection, getDocs, query } from 'firebase/firestore';
+import type { Caregiver, Child } from '@/lib/types';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { z } from 'zod';
 
 const authenticateChildSchema = z.object({
-    name: z.string().trim().min(1, { message: 'Name cannot be empty.' }),
-    caregiverName: z.string().trim().min(1, { message: 'Caretaker Name cannot be empty.' }),
+  name: z.string().trim().min(1, { message: 'Name cannot be empty.' }),
+  caregiverName: z.string().trim().min(1, { message: "Caregiver's name cannot be empty." }),
 });
 
 export type AuthFormState = {
@@ -16,71 +16,74 @@ export type AuthFormState = {
     child?: Child;
 } | null;
 
+
 export async function authenticateChild(
     prevState: AuthFormState,
     formData: FormData
 ): Promise<AuthFormState> {
     const validatedFields = authenticateChildSchema.safeParse({
         name: formData.get('name'),
-        caregiverName: formData.get('caregiverName'),
+        caregiverName: formData.get('caregiverName')
     });
 
     if (!validatedFields.success) {
-        const errors = validatedFields.error.flatten().fieldErrors;
         return {
-            message: errors.name?.[0] || errors.caregiverName?.[0] || 'Invalid data provided.',
+            message:
+                validatedFields.error.flatten().fieldErrors.name?.[0] ||
+                validatedFields.error.flatten().fieldErrors.caregiverName?.[0] ||
+                'Invalid data provided.',
         };
     }
 
     try {
         const { name, caregiverName } = validatedFields.data;
+        const inputChildName = name.trim().toLowerCase();
+        const inputCaregiverName = caregiverName.trim().toLowerCase();
 
-        // Step 1: Find the caregiver by name (case-insensitive).
-        const caregiverQuery = query(collection(db, "caregiver"));
+        // 1. Find Caregiver
+        const caregiverQuery = query(collection(db, 'caregiver'));
         const caregiverSnapshot = await getDocs(caregiverQuery);
-
         if (caregiverSnapshot.empty) {
-            return { message: 'No caregiver profiles found in the database. Please contact support.' };
+            return { message: 'No caregivers found in the database.' };
         }
 
-        let foundCaregiverDoc = null;
+        let foundCaregiver = null;
         for (const doc of caregiverSnapshot.docs) {
-            const caregiverData = doc.data();
-            const docCaregiverName = caregiverData.Name || caregiverData.name;
-            if (docCaregiverName && docCaregiverName.toLowerCase() === caregiverName.toLowerCase()) {
-                foundCaregiverDoc = doc;
-                break;
-            }
+             const caregiverData = doc.data();
+             const docName = caregiverData.name || caregiverData.Name || caregiverData.caregiverName || caregiverData.fullName;
+             if (docName && docName.trim().toLowerCase() === inputCaregiverName) {
+                 foundCaregiver = { id: doc.id, ...caregiverData };
+                 break;
+             }
         }
 
-        if (!foundCaregiverDoc) {
-             return { message: 'Caretaker name not found. Please check the spelling and try again.' };
+        if (!foundCaregiver) {
+            return { message: 'Caregiver not found. Please check the spelling.' };
         }
-        
-        const caregiverId = foundCaregiverDoc.id;
 
-        // Step 2: Find the child with the matching name and caregiverId (case-insensitive).
-        const childQuery = query(collection(db, "children"));
-        const childSnapshot = await getDocs(childQuery);
+        // 2. Find Child with matching name and caregiverId
+        const childrenQuery = query(
+            collection(db, 'children'),
+            where('caregiverId', '==', foundCaregiver.id)
+        );
+        const childrenSnapshot = await getDocs(childrenQuery);
 
-        if (childSnapshot.empty) {
-            return { message: 'No children found in the database.' };
+        if (childrenSnapshot.empty) {
+            return { message: 'This caregiver does not have any registered children.' };
         }
 
         let foundChildDoc = null;
-        for (const doc of childSnapshot.docs) {
+        for (const doc of childrenSnapshot.docs) {
             const childData = doc.data();
-            const docChildName = childData.name || childData.Name;
-            const docCaregiverId = childData.caregiverId;
-
-            if (docChildName && docChildName.toLowerCase() === name.toLowerCase() && docCaregiverId === caregiverId) {
+            const docName = childData.name || childData.Name;
+             if (docName && docName.trim().toLowerCase() === inputChildName) {
                 foundChildDoc = doc;
                 break;
             }
         }
-
+        
         if (!foundChildDoc) {
-            return { message: 'Your name was not found for the provided Caretaker. Please check your details.' };
+             return { message: `No child named "${name}" found for caregiver "${caregiverName}".` };
         }
 
         const childData = foundChildDoc.data();
@@ -89,16 +92,19 @@ export async function authenticateChild(
             name: childData.name || childData.Name,
             age: childData.age,
             disability: childData.disability,
-            profilePhoto: childData.profilePhoto,
+            profilePhoto: childData.profilePhoto
         };
 
         return {
-            message: "success",
+            message: 'success',
             child: child,
         };
 
     } catch (e: any) {
-        console.error(e);
-        return { message: 'An unexpected error occurred during login. Please try again.' };
+        console.error('❌ Authentication error:', e);
+        return {
+            message:
+                'An unexpected error occurred during login. Please try again.',
+        };
     }
 }
